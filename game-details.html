@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Re:gaming – Detalle de Juego</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#C8A2FF',
+                        'primary-dark': '#A575EB',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="bubbles.css">
+</head>
+<body class="bg-black text-white min-h-screen relative overflow-x-hidden">
+    <!-- Partículas de fondo -->
+    <div id="bubbles-container"></div>
+
+    <!-- NAVBAR -->
+    <nav class="border-b bg-white/90 dark:bg-black backdrop-blur-md sticky top-0 z-50 transition-colors duration-500">
+        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img src="0b86edf6-a648-48ab-9091-f2ca581a37ed.jpg" class="w-10 h-10 object-contain" alt="logo">
+                <a href="index.html" class="logo text-4xl" data-text="Re:gaming">Re:gaming</a>
+            </div>
+            <!-- Dynamic Navigation Menu populated by main.js -->
+            <div class="flex items-center gap-8 text-lg" id="nav-menu"></div>
+        </div>
+    </nav>
+
+    <!-- Detalle de Juego -->
+    <main id="details-container" class="max-w-7xl mx-auto px-6 py-12 relative z-10">
+        <!-- Skeleton Loading -->
+        <div id="details-skeleton" class="animate-pulse space-y-8">
+            <div class="h-96 bg-gray-800 rounded-3xl w-full"></div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="h-64 bg-gray-800 rounded-3xl md:col-span-2"></div>
+                <div class="h-64 bg-gray-800 rounded-3xl"></div>
+            </div>
+        </div>
+
+        <!-- Contenido Real -->
+        <div id="details-content" class="hidden space-y-12">
+            <!-- Hero Header con Background Ambient -->
+            <div class="relative rounded-3xl overflow-hidden shadow-2xl min-h-[400px] flex items-end p-8 md:p-12 border border-white/10">
+                <div id="game-bg-ambient" class="absolute inset-0 bg-cover bg-center scale-105 filter blur-sm"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
+                <div class="relative z-10 flex flex-col md:flex-row gap-8 items-start md:items-end w-full">
+                    <img id="game-poster" src="" alt="" class="w-48 h-64 object-cover rounded-2xl shadow-2xl border border-white/20">
+                    <div class="space-y-4">
+                        <h1 id="game-title" class="text-4xl md:text-6xl font-extrabold tracking-tight">Cargando Juego...</h1>
+                        <div class="flex flex-wrap gap-3" id="game-genres"></div>
+                        <div class="flex flex-wrap items-center gap-4 text-gray-300">
+                            <span class="flex items-center gap-1.5"><span class="text-amber-400">★</span> <span id="game-rating" class="font-bold text-white">0.0</span> / 5</span>
+                            <span class="text-white/20">|</span>
+                            <span id="game-release-date">N/A</span>
+                            <span class="text-white/20">|</span>
+                            <!-- Botón reactivo de Biblioteca -->
+                            <button id="add-btn-details" class="px-4 py-2 rounded-xl bg-gray-800 hover:bg-primary hover:text-black text-gray-200 transition-all duration-300 font-bold text-sm flex items-center gap-2 cursor-pointer border border-transparent shadow-md">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                                <span>Añadir a biblioteca</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Detallada -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Columna Izquierda: Descripción -->
+                <div class="md:col-span-2 space-y-6">
+                    <div class="card p-8 bg-gray-900/50 backdrop-blur-md border border-white/5 rounded-3xl">
+                        <h2 class="text-2xl font-bold mb-4 text-primary">Descripción</h2>
+                        <div id="game-description" class="text-gray-300 leading-relaxed space-y-4 text-lg"></div>
+                    </div>
+
+                    <!-- Trailer Player -->
+                    <div id="game-trailer-wrapper" class="card p-8 bg-gray-900/50 backdrop-blur-md border border-white/5 rounded-3xl hidden">
+                        <h2 class="text-2xl font-bold mb-4 text-primary">Tráiler Oficial</h2>
+                        <div class="aspect-video rounded-2xl overflow-hidden bg-black border border-white/10">
+                            <video id="game-trailer" controls class="w-full h-full object-contain"></video>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Plataformas y Metadatos -->
+                <div class="space-y-6">
+                    <div class="card p-8 bg-gray-900/50 backdrop-blur-md border border-white/5 rounded-3xl space-y-6">
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Plataformas</h3>
+                            <div class="flex flex-wrap gap-2" id="game-platforms"></div>
+                        </div>
+                        <div class="border-t border-white/10 pt-6">
+                            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Desarrollador</h3>
+                            <p id="game-developers" class="text-white font-medium">N/A</p>
+                        </div>
+                        <div class="border-t border-white/10 pt-6">
+                            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Publisher</h3>
+                            <p id="game-publishers" class="text-white font-medium">N/A</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Galería de Capturas de Pantalla -->
+            <div id="game-screenshots-wrapper" class="space-y-4 hidden">
+                <h2 class="text-3xl font-bold text-primary">Capturas de Pantalla</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="game-screenshots"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts compartidos -->
+    <script src="modal.js"></script>
+    <script src="main.js"></script>
+    <script>
+        const getQueryParam = (name) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        };
+
+        const loadGameDetails = async () => {
+            const gameId = getQueryParam('id');
+            if (!gameId) {
+                document.getElementById('details-skeleton').innerHTML = '<p class="text-red-500 text-center py-12">ID del juego no especificado.</p>';
+                return;
+            }
+
+            try {
+                const baseUrl = `${location.origin}`;
+                const res = await fetch(`${baseUrl}/api/games/${gameId}`);
+                if (!res.ok) {
+                    throw new Error(`Error HTTP ${res.status}`);
+                }
+                const data = await res.json();
+                if (!data.success || !data.game) {
+                    throw new Error('No se encontraron detalles del juego.');
+                }
+
+                const game = data.game;
+
+                // Setear elementos básicos
+                document.getElementById('game-bg-ambient').style.backgroundImage = `url('${game.background_image}')`;
+                document.getElementById('game-poster').src = game.background_image || '';
+                document.getElementById('game-title').textContent = game.name || '';
+                document.getElementById('game-rating').textContent = game.rating || '0.0';
+                
+                const releaseDate = game.released 
+                    ? new Date(game.released).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })
+                    : 'N/A';
+                document.getElementById('game-release-date').textContent = releaseDate;
+
+                // Géneros
+                document.getElementById('game-genres').innerHTML = (game.genres || []).map(g => `
+                    <span class="text-xs px-3 py-1.5 rounded-full bg-primary/20 text-primary border border-primary/20 font-bold">${g.name}</span>
+                `).join('');
+
+                // Descripción
+                document.getElementById('game-description').innerHTML = game.description || 'No hay descripción disponible.';
+
+                // Plataformas
+                document.getElementById('game-platforms').innerHTML = (game.platforms || []).map(p => `
+                    <span class="text-xs px-2.5 py-1.5 rounded-lg bg-white/10 text-gray-300 border border-white/5 font-medium">${p.platform.name}</span>
+                `).join('');
+
+                // Desarrolladores
+                document.getElementById('game-developers').textContent = (game.developers || []).map(d => d.name).join(', ') || 'N/A';
+
+                // Publishers
+                document.getElementById('game-publishers').textContent = (game.publishers || []).map(p => p.name).join(', ') || 'N/A';
+
+                // Screenshots
+                if (data.screenshots && data.screenshots.length > 0) {
+                    document.getElementById('game-screenshots-wrapper').classList.remove('hidden');
+                    document.getElementById('game-screenshots').innerHTML = data.screenshots.map(ss => `
+                        <div class="overflow-hidden rounded-2xl border border-white/10 bg-gray-900 aspect-video shadow-lg group">
+                            <img src="${ss.image}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Screenshot" onclick="window.open('${ss.image}', '_blank')">
+                        </div>
+                    `).join('');
+                }
+
+                // Trailer
+                if (data.trailers && data.trailers.length > 0) {
+                    const trailer = data.trailers[0];
+                    if (trailer.data && trailer.data.max) {
+                        document.getElementById('game-trailer-wrapper').classList.remove('hidden');
+                        const videoPlayer = document.getElementById('game-trailer');
+                        videoPlayer.src = trailer.data.max;
+                        if (trailer.preview) videoPlayer.setAttribute('poster', trailer.preview);
+                    }
+                }
+
+                // Mostrar Contenido
+                document.getElementById('details-skeleton').classList.add('hidden');
+                document.getElementById('details-content').classList.remove('hidden');
+
+                if (typeof updateAddButtonsState === 'function') {
+                    updateAddButtonsState();
+                }
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('details-skeleton').innerHTML = `
+                    <div class="text-center py-12">
+                        <p class="text-red-500 font-bold mb-4">Error al cargar la información del juego.</p>
+                        <button onclick="location.reload()" class="px-6 py-2.5 bg-primary hover:bg-primary-dark text-black font-bold rounded-xl transition duration-300">Reintentar</button>
+                    </div>
+                `;
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', loadGameDetails);
+    </script>
+</body>
+</html>

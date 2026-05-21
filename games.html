@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Re:gaming – Todos los Juegos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#C8A2FF',
+                        'primary-dark': '#A575EB',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="bubbles.css">
+</head>
+<body class="bg-black text-white min-h-screen relative overflow-x-hidden">
+    <!-- Partículas de fondo (se reutiliza del proyecto) -->
+    <div id="bubbles-container"></div>
+
+    <!-- NAVBAR -->
+    <nav class="border-b bg-white/90 dark:bg-black backdrop-blur-md sticky top-0 z-50 transition-colors duration-500">
+        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img src="0b86edf6-a648-48ab-9091-f2ca581a37ed.jpg" class="w-10 h-10 object-contain" alt="logo">
+                <a href="index.html" class="logo text-4xl" data-text="Re:gaming">Re:gaming</a>
+            </div>
+            <!-- Navegación y Buscador -->
+            <div class="flex items-center gap-6">
+                <!-- Buscador (navbar derecho) -->
+                <input id="navbar-search" type="text" placeholder="Buscar juegos…" class="px-4 py-2 rounded-xl bg-gray-100 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white text-sm focus:ring-primary focus:border-primary w-64 transition" />
+                <!-- Dynamic Navigation Menu populated by main.js -->
+                <div class="flex items-center gap-8 text-lg" id="nav-menu"></div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Filtros -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+            <div class="flex items-center gap-2">
+                <select id="filter-select" class="bg-gray-800 border border-gray-600 text-gray-200 rounded-xl p-2 focus:ring-primary focus:border-primary">
+                    <option value="popular">Más populares</option>
+                    <option value="released_desc">Más recientes</option>
+                    <option value="released_asc">Más antiguos</option>
+                    <option value="rating">Mejor puntuados</option>
+                    <option value="name">A‑Z</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Contenedor de tarjetas -->
+        <div id="games-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <!-- Las tarjetas se insertan con JS -->
+        </div>
+
+        <div id="loader" class="text-center py-8 hidden text-gray-400">Cargando más juegos…</div>
+        <div id="end-msg" class="text-center py-8 hidden text-gray-400">🎉 No hay más juegos.</div>
+    </main>
+
+    <script src="modal.js"></script>
+    <script src="main.js"></script>
+    <script>
+        const token = localStorage.getItem('token') || '';
+        const PAGE_SIZE = 20;
+        let currentPage = 1;
+        let loading = false;
+        let hasMore = true;
+        let currentFilter = 'popular';
+        let currentQuery = '';
+
+        const debounce = (fn, delay) => {
+            let t;
+            return (...args) => {
+                clearTimeout(t);
+                t = setTimeout(() => fn.apply(this, args), delay);
+            };
+        };
+
+        const buildUrl = () => {
+            const base = currentQuery ? `/api/games/search?q=${encodeURIComponent(currentQuery)}` : `/api/games`;
+            const params = new URLSearchParams();
+            params.append('page', currentPage);
+            params.append('pageSize', PAGE_SIZE);
+            if (!currentQuery) params.append('sort', currentFilter);
+            return `${base}?${params.toString()}`;
+        };
+
+        const fetchGames = async () => {
+            try {
+                const res = await fetch(buildUrl(), {
+                    headers: { 'Authorization': token ? `Bearer ${token}` : '' }
+                });
+                const data = await res.json();
+                return data;
+            } catch (e) {
+                console.error('Error al obtener juegos', e);
+                return { success: false, games: [] };
+            }
+        };
+
+        const renderGames = (games) => {
+            const container = document.getElementById('games-container');
+            const markup = games.map(g => {
+                if (!g || !g.id || !g.name || !g.background_image) return '';
+                const rating = g.rating !== undefined ? g.rating : 0;
+                const released = g.released || '';
+                const releaseDate = released 
+                    ? new Date(released).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })
+                    : 'N/A';
+                const safeName = g.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                
+                return `
+                    <div onclick="window.location.href='game-details.html?id=${g.id}'" class="group cursor-pointer relative flex flex-col bg-[#0f0f0f] text-white rounded-2xl overflow-hidden shadow-lg border border-white/5 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20">
+                        <!-- Contenedor de Imagen -->
+                        <div class="relative w-full aspect-[3/4] overflow-hidden bg-gray-900">
+                            <img src="${g.background_image}" alt="${g.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                            
+                            <!-- Overlay gradiente -->
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            
+                            <!-- Score Badge -->
+                            <div class="absolute top-4 right-4 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 flex items-center gap-1.5 shadow-lg">
+                                <span class="text-amber-400 text-sm">★</span>
+                                <span class="text-white font-bold text-sm">${rating}</span>
+                            </div>
+                        </div>
+
+                        <!-- Contenido -->
+                        <div class="p-5 flex flex-col flex-grow">
+                            <h2 class="text-xl font-bold mb-2 line-clamp-1 text-white" title="${g.name}">${g.name}</h2>
+                            
+                            <div class="mt-auto flex items-center justify-between">
+                                <div class="flex flex-col">
+                                    <span class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Lanzamiento</span>
+                                    <span class="text-sm text-gray-300">${releaseDate}</span>
+                                </div>
+                                
+                                <!-- Botón de Acción (Añadir a Mi Lista) -->
+                                <button id="add-btn-${g.id}" onclick="event.stopPropagation(); addToMyList('${g.id}', '${safeName}', '${g.background_image}', '${rating}', '${released}')" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 hover:bg-primary hover:text-black transition-all duration-300 cursor-pointer">
+                                    <svg id="add-icon-${g.id}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 transition-transform duration-300">
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between text-xs text-primary font-bold hover:underline">
+                                <span>Ver detalle →</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.insertAdjacentHTML('beforeend', markup);
+            
+            if (typeof updateAddButtonsState === 'function') {
+                updateAddButtonsState();
+            }
+        };
+
+        const loadMore = async () => {
+            if (loading || !hasMore) return;
+            loading = true;
+            document.getElementById('loader').classList.remove('hidden');
+            const data = await fetchGames();
+            if (data.success) {
+                renderGames(data.games);
+                hasMore = data.hasMore;
+                if (!hasMore) document.getElementById('end-msg').classList.remove('hidden');
+                currentPage++;
+            }
+            document.getElementById('loader').classList.add('hidden');
+            loading = false;
+        };
+
+        // Infinite scroll
+        window.addEventListener('scroll', () => {
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+            if (scrollTop + clientHeight >= scrollHeight - 150) loadMore();
+        });
+
+        // Filtro change
+        document.getElementById('filter-select').addEventListener('change', (e) => {
+            currentFilter = e.target.value;
+            currentPage = 1;
+            hasMore = true;
+            document.getElementById('games-container').innerHTML = '';
+            loadMore();
+        });
+
+        // Navbar search (real‑time)
+        document.getElementById('navbar-search').addEventListener('input', debounce(async (e) => {
+            currentQuery = e.target.value.trim();
+            currentPage = 1;
+            hasMore = true;
+            document.getElementById('games-container').innerHTML = '';
+            loadMore();
+        }, 350));
+
+        // Initial load
+        loadMore();
+    </script>
+</body>
+</html>

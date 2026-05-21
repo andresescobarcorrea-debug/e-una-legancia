@@ -1,0 +1,64 @@
+/* bubbles.css */
+:root {
+    --bubble-lilac: #C8A2FF;
+    --bubble-dynamic: #111111;
+    --bubble-glow: rgba(200, 162, 255, 0.6);
+}
+
+body.dark {
+    --bubble-dynamic: #ffffff;
+}
+
+#bubbles-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: -1;
+    pointer-events: none; /* Dejar pasar clicks al contenido por defecto */
+    background: transparent;
+    filter: url('#goo');
+}
+
+.bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--bubble-lilac);
+    transition: background 0.8s ease;
+    will-change: transform;
+    /* La animación se maneja por JS ahora */
+    backface-visibility: hidden;
+    cursor: grab;
+    pointer-events: none; /* Permitir que JS maneje la detección de colisión con el mouse */
+}
+
+.bubble:active {
+    cursor: grabbing;
+}
+
+/* Burbuja Lila Brillante */
+.bubble-lilac {
+    background: var(--bubble-lilac);
+    box-shadow: 0 0 40px var(--bubble-glow), inset 0 0 20px rgba(255, 255, 255, 0.2);
+    opacity: 0.95;
+}
+
+/* Burbuja Dinámica (Negra/Blanca) */
+.bubble-dynamic {
+    background: var(--bubble-dynamic);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    opacity: 0.95;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+body.dark .bubble-dynamic {
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Asegurar transiciones suaves en modo oscuro */
+body, #bubbles-container, .bubble {
+    transition: background-color 0.8s ease, color 0.8s ease, filter 0.8s ease;
+}

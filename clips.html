@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>re:gaming - Clips</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#C8A2FF',
+                        'primary-dark': '#A575EB',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="bubbles.css">
+    <style>
+        .clip-card video {
+            cursor: pointer;
+        }
+        
+        /* Ocultar scrollbars feos en comentarios */
+        .comments-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .comments-list::-webkit-scrollbar-thumb {
+            background-color: rgba(200, 162, 255, 0.3);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="bg-white dark:bg-black min-h-screen">
+
+    <div id="bubbles-container"></div>
+
+    <!-- Navegación -->
+    <nav class="border-b bg-white/90 dark:bg-black backdrop-blur-md sticky top-0 z-50 transition-colors duration-500">
+        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img id="site-logo" src="0b86edf6-a648-48ab-9091-f2ca581a37ed.jpg" alt="re:gaming Logo"
+                    class="w-10 h-10 object-contain">
+                <a href="index.html" class="logo text-4xl" data-text="Re:gaming">Re:gaming</a>
+            </div>
+            <div class="flex items-center gap-8 text-lg" id="nav-menu"></div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-12 relative z-10">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
+            <div>
+                <h1 class="text-6xl font-bold mb-3">Clips Gaming</h1>
+                <p class="text-2xl text-gray-600 dark:text-gray-400">Los mejores momentos de la comunidad</p>
+            </div>
+            
+            <div class="flex gap-4 items-center">
+                <select id="game-filter" class="bg-gray-100 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white text-sm rounded-xl focus:ring-primary focus:border-primary block p-3">
+                    <option value="">Todos los juegos</option>
+                    <!-- Opciones se cargan dinámicamente -->
+                </select>
+                
+                <button onclick="showUploadModal()" class="btn-primary px-8 py-3 text-lg flex items-center gap-3 whitespace-nowrap">
+                    <span class="text-2xl">+</span> Subir Clip
+                </button>
+            </div>
+        </div>
+
+        <!-- Grid de Clips (Estilo Twitch / FB Gaming) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="clips-container">
+            <!-- Se inyecta por JS -->
+            <div class="col-span-full text-center py-20">
+                <p class="text-xl text-gray-500">Cargando clips...</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="modal.js"></script>
+    <script src="main.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        let allClips = [];
+
+        async function fetchClips(game = '') {
+            try {
+                let url = '/api/clips';
+                if (game) url += `?game=${encodeURIComponent(game)}`;
+                
+                const response = await window.apiFetch(url);
+                if (response.success) {
+                    allClips = response.clips;
+                    renderClips(allClips);
+                    updateFilterOptions(allClips);
+                }
+            } catch (err) {
+                console.error("Error cargando clips:", err);
+            }
+        }
+
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+
+            if (diffDays > 0) return `hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
+            if (diffHours > 0) return `hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`;
+            if (diffMins > 0) return `hace ${diffMins} min`;
+            return 'hace unos instantes';
+        }
+
+        function renderClips(clips) {
+            const container = document.getElementById('clips-container');
+            container.innerHTML = '';
+
+            if (clips.length === 0) {
+                container.innerHTML = '<div class="col-span-full text-center py-20 text-gray-500">No hay clips todavía. ¡Sube el primero!</div>';
+                return;
+            }
+
+            clips.forEach(clip => {
+                const avatar = clip.profile_image || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + clip.username;
+                
+                const card = `
+                    <div class="card overflow-hidden flex flex-col clip-card border border-gray-100 dark:border-slate-800 hover:border-primary/50 transition-colors duration-300">
+                        
+                        <!-- Header del Clip -->
+                        <div class="p-4 flex items-center justify-between bg-gray-50 dark:bg-slate-800/50">
+                            <div onclick="window.location.href='profile.html?id=${clip.user_id}'" class="flex items-center gap-3 cursor-pointer group/author">
+                                <img src="${avatar}" alt="Avatar" class="w-10 h-10 rounded-full object-cover bg-gray-200 group-hover/author:opacity-85 transition-opacity">
+                                <div>
+                                    <p class="font-bold text-sm text-gray-900 dark:text-white leading-tight group-hover/author:text-primary transition-colors">${clip.username}</p>
+                                    <p class="text-xs text-gray-500">${formatTime(clip.created_at)}</p>
+                                </div>
+                            </div>
+                            <span class="px-2 py-1 bg-primary/20 text-primary-dark dark:text-primary text-xs font-semibold rounded-md truncate max-w-[100px]">
+                                ${clip.game_name}
+                            </span>
+                        </div>
+
+                        <!-- Video Player -->
+                        <div class="relative bg-black group aspect-video">
+                            <video 
+                                src="${clip.video_url}" 
+                                class="w-full h-full object-contain" 
+                                muted loop playsinline
+                                onmouseover="this.play()" 
+                                onmouseout="this.pause()"
+                                onclick="openClipModal(${clip.id})"
+                            ></video>
+                            
+                            <!-- Overlay Play Icon (Solo visible cuando pausado y sin hover) -->
+                            <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div class="bg-black/50 rounded-full p-3 backdrop-blur-sm text-white">
+                                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4l12 6-12 6z"/></svg>
+                                </div>
+                            </div>
+                            
+                            <!-- Views Badge -->
+                            <div class="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                ${clip.views}
+                            </div>
+                        </div>
+
+                        <!-- Info & Actions -->
+                        <div class="p-4 flex flex-col flex-grow justify-between">
+                            <h3 class="font-bold text-lg mb-4 line-clamp-2">${clip.title}</h3>
+                            
+                            <div class="flex items-center gap-4 mt-auto border-t border-gray-100 dark:border-slate-800 pt-3">
+                                <button onclick="toggleLike(${clip.id}, this)" class="flex items-center gap-1.5 text-gray-500 hover:text-red-500 transition-colors">
+                                    <svg class="w-5 h-5 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                    <span class="font-medium text-sm likes-count">${clip.likes_count}</span>
+                                </button>
+                                
+                                <button onclick="openClipModal(${clip.id})" class="flex items-center gap-1.5 text-gray-500 hover:text-blue-500 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                                    <span class="font-medium text-sm">${clip.comments_count}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        }
+
+        function updateFilterOptions(clips) {
+            const select = document.getElementById('game-filter');
+            const currentVal = select.value;
+            
+            const games = [...new Set(clips.map(c => c.game_name))];
+            
+            let html = '<option value="">Todos los juegos</option>';
+            games.forEach(g => {
+                html += `<option value="${g}">${g}</option>`;
+            });
+            
+            select.innerHTML = html;
+            select.value = currentVal;
+            
+            select.onchange = (e) => {
+                fetchClips(e.target.value);
+            };
+        }
+
+        async function toggleLike(clipId, btnElement) {
+            if (!localStorage.getItem('isLoggedIn')) {
+                await showAlert("Debes iniciar sesión para dar like.");
+                return;
+            }
+
+            try {
+                const res = await window.apiFetch(`/api/clips/${clipId}/like`, { method: 'POST' });
+                if (res.success) {
+                    const icon = btnElement.querySelector('.like-icon');
+                    const count = btnElement.querySelector('.likes-count');
+                    
+                    count.textContent = res.likes_count;
+                    
+                    if (res.liked) {
+                        icon.setAttribute('fill', 'currentColor');
+                        icon.classList.add('text-red-500');
+                        btnElement.classList.add('text-red-500');
+                    } else {
+                        icon.setAttribute('fill', 'none');
+                        icon.classList.remove('text-red-500');
+                        btnElement.classList.remove('text-red-500');
+                    }
+                }
+            } catch (err) {
+                console.error("Error toggling like", err);
+            }
+        }
+
+        // Subida de Clip (Custom UI + Multer)
+        async function showUploadModal() {
+            if (!localStorage.getItem('isLoggedIn')) {
+                await showAlert("Debes iniciar sesión para subir un clip.");
+                return;
+            }
+
+            // Usaremos el modal base pero con HTML customizado para el archivo
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity';
+            
+            const content = `
+                <div class="bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-lg w-full shadow-2xl transform scale-100 transition-transform">
+                    <h2 class="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Subir nuevo clip</h2>
+                    <p class="text-sm text-gray-500 mb-6">Sube tu mejor momento. Máximo 60 segundos (50MB) en formato MP4 o WEBM.</p>
+                    
+                    <form id="upload-clip-form" class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Video</label>
+                            <input type="file" id="clip-file" accept="video/mp4,video/webm" required
+                                class="w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 dark:bg-slate-800 rounded-xl">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Título</label>
+                            <input type="text" id="clip-title" required placeholder="Ej: ¡Mi mejor jugada en CS:GO!"
+                                class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-gray-900 dark:text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Juego</label>
+                            <input type="text" id="clip-game" required placeholder="Ej: Counter-Strike 2"
+                                class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-gray-900 dark:text-white">
+                        </div>
+                        
+                        <div id="upload-progress" class="hidden w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-4">
+                            <div class="bg-primary h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                        <p id="upload-status" class="text-sm text-primary mt-2 hidden">Subiendo...</p>
+
+                        <div class="flex gap-4 mt-8">
+                            <button type="button" id="btn-cancel" class="flex-1 px-6 py-3 border border-gray-300 dark:border-slate-700 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition">Cancelar</button>
+                            <button type="submit" id="btn-submit" class="flex-1 btn-primary py-3">Publicar</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            modal.innerHTML = content;
+            document.body.appendChild(modal);
+
+            const form = document.getElementById('upload-clip-form');
+            const fileInput = document.getElementById('clip-file');
+            
+            // Validación local
+            fileInput.addEventListener('change', () => {
+                const file = fileInput.files[0];
+                if (file) {
+                    if (file.size > 50 * 1024 * 1024) {
+                        alert("El video excede los 50MB permitidos.");
+                        fileInput.value = ''; // Limpiar
+                    }
+                }
+            });
+
+            document.getElementById('btn-cancel').onclick = () => modal.remove();
+
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+                const file = fileInput.files[0];
+                const title = document.getElementById('clip-title').value;
+                const game = document.getElementById('clip-game').value;
+
+                if (!file || !title || !game) return;
+
+                // Bloquear UI
+                document.getElementById('btn-submit').disabled = true;
+                document.getElementById('btn-cancel').disabled = true;
+                document.getElementById('upload-progress').classList.remove('hidden');
+                document.getElementById('upload-status').classList.remove('hidden');
+
+                const formData = new FormData();
+                formData.append('video', file);
+                formData.append('title', title);
+                formData.append('game_name', game);
+
+                try {
+                    const token = localStorage.getItem('token');
+                    
+                    // Simular progreso rápido visual
+                    const bar = document.querySelector('#upload-progress > div');
+                    let p = 0;
+                    const intv = setInterval(() => { p+=10; if(p<=90) bar.style.width = p+'%'; }, 200);
+
+                    const response = await fetch('/api/clips', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+                    
+                    clearInterval(intv);
+                    bar.style.width = '100%';
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        modal.remove();
+                        await showAlert("¡Clip publicado con éxito!");
+                        fetchClips(); // recargar
+                    } else {
+                        modal.remove();
+                        await showAlert(data.message || "Error al subir video");
+                    }
+                } catch (err) {
+                    modal.remove();
+                    await showAlert("Error conectando al servidor");
+                }
+            };
+        }
+
+        // --- Vista de detalle y comentarios ---
+        async function openClipModal(clipId) {
+            // Incrementar view
+            fetch(`/api/clips/${clipId}/view`, { method: 'POST' }).catch(e=>e);
+
+            const clip = allClips.find(c => c.id === clipId);
+            if(!clip) return;
+
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-0 md:p-6 transition-opacity';
+            
+            const content = `
+                <div class="bg-white dark:bg-slate-900 w-full h-full md:rounded-2xl md:max-w-6xl md:h-[80vh] flex flex-col md:flex-row overflow-hidden shadow-2xl relative">
+                    
+                    <!-- Lado Izquierdo: Video Grande -->
+                    <div class="w-full md:w-2/3 bg-black flex items-center justify-center relative h-[40vh] md:h-full">
+                        <!-- Botón Cerrar Flotante (Estilo TikTok/Reels) -->
+                        <button onclick="this.closest('.fixed').remove()" 
+                            class="absolute top-[15px] left-[15px] z-[60] w-10 h-10 bg-black/40 hover:bg-black/80 text-white rounded-full flex items-center justify-center backdrop-blur-sm transition-all duration-300 shadow-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                        <video src="${clip.video_url}" class="w-full h-full object-contain" controls autoplay loop playsinline></video>
+                    </div>
+
+                    <!-- Lado Derecho: Info y Comentarios -->
+                    <div class="w-full md:w-1/3 flex flex-col h-[60vh] md:h-full bg-white dark:bg-slate-900 border-l border-gray-200 dark:border-slate-800">
+                        
+                        <!-- Header Autor -->
+                        <div class="p-6 border-b border-gray-200 dark:border-slate-800 shrink-0">
+                            <div onclick="window.location.href='profile.html?id=${clip.user_id}'" class="flex items-center gap-4 mb-4 cursor-pointer group/modal-author">
+                                <img src="${clip.profile_image || 'https://api.dicebear.com/7.x/avataaars/svg?seed='+clip.username}" class="w-12 h-12 rounded-full object-cover group-hover/modal-author:opacity-85 transition-opacity">
+                                <div>
+                                    <h3 class="font-bold text-lg group-hover/modal-author:text-primary transition-colors">${clip.username}</h3>
+                                    <p class="text-gray-500 text-sm">${clip.game_name} • ${formatTime(clip.created_at)}</p>
+                                </div>
+                            </div>
+                            <p class="text-base text-gray-800 dark:text-gray-200">${clip.title}</p>
+                        </div>
+
+                        <!-- Lista de Comentarios -->
+                        <div id="comments-list-${clip.id}" class="flex-grow overflow-y-auto p-6 space-y-6 comments-list bg-gray-50 dark:bg-slate-900/50">
+                            <div class="text-center text-gray-500 mt-10">Cargando comentarios...</div>
+                        </div>
+
+                        <!-- Formulario de Comentario -->
+                        <div class="p-4 border-t border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
+                            <form onsubmit="postComment(event, ${clip.id})" class="flex gap-2">
+                                <input type="text" id="comment-input-${clip.id}" placeholder="Escribe un comentario..." 
+                                    class="flex-grow bg-gray-100 dark:bg-slate-800 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-sm">
+                                <button type="submit" class="bg-primary text-white p-3 rounded-xl hover:bg-primary-dark transition">
+                                    <svg class="w-5 h-5 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            modal.innerHTML = content;
+            document.body.appendChild(modal);
+
+            loadComments(clipId);
+        }
+
+        async function loadComments(clipId) {
+            try {
+                const res = await window.apiFetch(`/api/clips/${clipId}/comments`);
+                const container = document.getElementById(`comments-list-${clipId}`);
+                
+                if (res.success && res.comments) {
+                    if (res.comments.length === 0) {
+                        container.innerHTML = '<div class="text-center text-gray-500 mt-10">Sé el primero en comentar.</div>';
+                        return;
+                    }
+
+                    container.innerHTML = res.comments.map(c => `
+                        <div class="flex gap-3">
+                            <img onclick="window.location.href='profile.html?id=${c.user_id}'" src="${c.profile_image || 'https://api.dicebear.com/7.x/avataaars/svg?seed='+c.username}" class="w-8 h-8 rounded-full object-cover shrink-0 cursor-pointer hover:opacity-85 transition-opacity">
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">
+                                    <span onclick="window.location.href='profile.html?id=${c.user_id}'" class="font-bold text-gray-900 dark:text-white cursor-pointer hover:text-primary transition-colors">${c.username}</span> 
+                                    • ${formatTime(c.created_at)}
+                                </p>
+                                <p class="text-sm text-gray-800 dark:text-gray-200">${c.content}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function postComment(e, clipId) {
+            e.preventDefault();
+            if (!localStorage.getItem('isLoggedIn')) {
+                await showAlert("Debes iniciar sesión para comentar.");
+                return;
+            }
+
+            const input = document.getElementById(`comment-input-${clipId}`);
+            const content = input.value.trim();
+            if(!content) return;
+
+            try {
+                const res = await window.apiFetch(`/api/clips/${clipId}/comments`, {
+                    method: 'POST',
+                    body: JSON.stringify({ content })
+                });
+
+                if (res.success) {
+                    input.value = '';
+                    loadComments(clipId); // Recargar
+                } else {
+                    await showAlert(res.message);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchClips();
+        });
+    </script>
+</body>
+
+</html>

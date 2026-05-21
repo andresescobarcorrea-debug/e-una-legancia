@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración - re:gaming</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#C8A2FF',
+                        'primary-dark': '#A575EB',
+                        'soft-black': '#111111',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="bubbles.css">
+    <style>
+        .settings-card {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f3f4f6;
+            transition: all 0.3s ease;
+        }
+
+        .dark .settings-card {
+            background: #111111;
+            border-color: #1f2937;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .settings-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+            background: transparent;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .dark .input-field {
+            border-color: #374151;
+            color: white;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(200, 162, 255, 0.1);
+        }
+
+        /* Switch toggle */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 dark:bg-black min-h-screen transition-colors duration-500">
+
+    <!-- Burbujas -->
+    <div id="bubbles-container"></div>
+
+    <!-- Navegación -->
+    <nav class="border-b bg-white/90 dark:bg-black/90 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img id="site-logo" src="0b86edf6-a648-48ab-9091-f2ca581a37ed.jpg" alt="re:gaming Logo"
+                    class="w-10 h-10 object-contain">
+                <a href="index.html" class="logo text-4xl" data-text="Re:gaming">Re:gaming</a>
+            </div>
+            <div class="flex items-center gap-8 text-lg" id="nav-menu"></div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-6 py-12 relative z-10">
+        <h1 class="text-4xl font-bold mb-8 flex items-center gap-3">Configuración</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+
+            <!-- Modo Oscuro -->
+            <section class="settings-card flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold mb-1">Modo Oscuro</h2>
+                    <p class="text-gray-500 text-sm">Cambia el aspecto de la web</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()">
+                    <span class="slider"></span>
+                </label>
+            </section>
+
+            <!-- Efectos de Fondo -->
+            <section class="settings-card flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold mb-1">Efectos de Fondo</h2>
+                    <p class="text-gray-500 text-sm">Activa o desactiva las bolas animadas</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="bubbles-toggle" onchange="updateBubblesPref()">
+                    <span class="slider"></span>
+                </label>
+            </section>
+
+            <!-- Cambiar Nombre -->
+            <section class="settings-card">
+                <h2 class="text-xl font-bold mb-4">Cambiar Nombre</h2>
+                <div class="flex flex-col gap-3">
+                    <input type="text" id="new-username" class="input-field" placeholder="Nuevo nombre de usuario">
+                    <button onclick="saveNewName()" class="btn-primary w-full py-3">Guardar Cambios</button>
+                </div>
+            </section>
+
+            <!-- Cambiar Contraseña -->
+            <section class="settings-card md:col-span-1">
+                <h2 class="text-xl font-bold mb-4">Cambiar Contraseña</h2>
+                <div class="flex flex-col gap-3">
+                    <input type="password" id="current-pass" class="input-field" placeholder="Contraseña actual">
+                    <input type="password" id="new-pass" class="input-field" placeholder="Nueva contraseña">
+                    <input type="password" id="confirm-pass" class="input-field"
+                        placeholder="Confirmar nueva contraseña">
+                    <button onclick="updatePassword()" class="btn-primary w-full py-3">Actualizar Contraseña</button>
+                </div>
+            </section>
+
+            <!-- Reportar Usuario -->
+            <section class="settings-card md:col-span-1">
+                <h2 class="text-xl font-bold mb-4">Reportar un Usuario</h2>
+                <div class="flex flex-col gap-3">
+                    <input type="text" id="report-username" class="input-field"
+                        placeholder="Nombre del usuario a reportar">
+                    <select id="report-reason" class="input-field">
+                        <option value="">Selecciona un motivo</option>
+                        <option value="spam">Spam / Publicidad</option>
+                        <option value="harassment">Acoso / Lenguaje ofensivo</option>
+                        <option value="cheating">Trampas / Hacks</option>
+                        <option value="other">Otro motivo</option>
+                    </select>
+                    <textarea id="report-details" class="input-field h-24 resize-none"
+                        placeholder="Explica lo sucedido..."></textarea>
+                    <button onclick="sendReport()" class="btn-primary w-full py-3">Enviar Reporte</button>
+                </div>
+            </section>
+
+            <!-- Conexiones Gaming -->
+            <section class="settings-card md:col-span-1 flex flex-col justify-between hover:shadow-[0_0_20px_rgba(200,162,255,0.06)] transition duration-300">
+                <div>
+                    <h2 class="text-xl font-bold mb-1">Conexiones Gaming</h2>
+                    <p class="text-gray-500 text-sm mb-6">Vincula tus cuentas externas para sincronizar tus logros y biblioteca.</p>
+                    
+                    <div class="space-y-4">
+                        <!-- Steam -->
+                        <div class="flex items-center justify-between p-3 rounded-2xl bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 hover:border-primary/30 dark:hover:border-primary/20 transition duration-300 group">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-black/5 dark:bg-white/5 flex items-center justify-center group-hover:scale-110 transition duration-300 shadow-inner">
+                                    <svg class="w-6 h-6 text-gray-800 dark:text-gray-200 fill-current" viewBox="0 0 24 24">
+                                        <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.625 3.87 10.352 9.048 11.625l-.265-3.716c-1.464-.325-2.607-1.455-2.915-2.923L2.24 15.014c.006-.01.01-.02.016-.03.582-.93 1.554-1.576 2.684-1.688.064-.006.128-.01.192-.01l3.524 2.457c.22-.057.45-.09.688-.09.845 0 1.58.423 2.013 1.066l3.79-2.646v-.063c0-1.897 1.543-3.44 3.44-3.44s3.44 1.543 3.44 3.44-1.543 3.44-3.44 3.44c-.752 0-1.442-.244-2.006-.653l-3.738 2.61c.026.2.04.405.04.614 0 1.897-1.543 3.44-3.44 3.44-1.748 0-3.18-1.31-3.407-3.01L1.246 19.33A11.968 11.968 0 0012 24c6.63 0 12-5.373 12-12s-5.37-11.703-12-11.703zM7.25 18.75c0-.828.672-1.5 1.5-1.5s1.5.672 1.5 1.5-.672 1.5-1.5 1.5-1.5-.672-1.5-1.5zm11.25-5.25c0-.828.672-1.5 1.5-1.5s1.5.672 1.5 1.5-.672 1.5-1.5 1.5-1.5-.672-1.5-1.5z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <span class="block font-bold text-sm text-gray-900 dark:text-white">Steam</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-600 status-dot transition-all duration-300" id="steam-dot"></span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400 status-text" id="steam-status">No conectado</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="toggleConnection('steam')" id="steam-btn" class="px-4 py-2 rounded-xl text-xs font-black border border-primary/30 text-gray-800 dark:text-gray-200 hover:bg-primary hover:text-black transition duration-300 cursor-pointer">Conectar</button>
+                        </div>
+                        
+                        <!-- Xbox -->
+                        <div class="flex items-center justify-between p-3 rounded-2xl bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 hover:border-primary/30 dark:hover:border-primary/20 transition duration-300 group">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-black/5 dark:bg-white/5 flex items-center justify-center group-hover:scale-110 transition duration-300 shadow-inner">
+                                    <svg class="w-6 h-6 text-gray-800 dark:text-gray-200 fill-current" viewBox="0 0 24 24">
+                                        <path d="M11.238 21.84c-3.136-.339-5.918-1.782-7.854-4.048 2.222-1.393 5.485-2.28 9.387-2.378-4.227-.246-7.51-1.226-9.61-2.735a10.05 10.05 0 011.084-3.593c1.787 1.83 5.305 3.09 9.873 3.09 3.962 0 7.108-.946 8.878-2.457a10.038 10.038 0 011.196 3.655c-2.228 1.488-5.617 2.45-9.876 2.684 3.957.108 7.158.983 9.336 2.37-1.92 2.316-4.73 3.792-7.906 4.135a5.59 5.59 0 01-1.077-.123l-.867-.238-.867.238c-.18.05-.36.082-.544.1zm.762-21.84c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <span class="block font-bold text-sm text-gray-900 dark:text-white">Xbox Live</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-600 status-dot transition-all duration-300" id="xbox-dot"></span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400 status-text" id="xbox-status">No conectado</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="toggleConnection('xbox')" id="xbox-btn" class="px-4 py-2 rounded-xl text-xs font-black border border-primary/30 text-gray-800 dark:text-gray-200 hover:bg-primary hover:text-black transition duration-300 cursor-pointer">Conectar</button>
+                        </div>
+                        
+                        <!-- PlayStation -->
+                        <div class="flex items-center justify-between p-3 rounded-2xl bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 hover:border-primary/30 dark:hover:border-primary/20 transition duration-300 group">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-black/5 dark:bg-white/5 flex items-center justify-center group-hover:scale-110 transition duration-300 shadow-inner">
+                                    <svg class="w-6 h-6 text-gray-800 dark:text-gray-200 fill-current" viewBox="0 0 24 24">
+                                        <path d="M12 .002C5.373.002 0 5.375 0 12c0 6.627 5.373 12 12 12 6.627 0 12-5.373 12-12 0-6.625-5.373-11.998-12-11.998zm6.545 15.65c0 .647-.525 1.173-1.173 1.173H6.627c-.648 0-1.173-.526-1.173-1.173v-.586c0-.648.525-1.174 1.173-1.174h3.01v-1.78l-3.32-.733c-.562-.124-.954-.623-.954-1.2v-.234c0-.647.525-1.173 1.173-1.173h4.63V7.618h.834V10.15h4.629c.648 0 1.173.526 1.173 1.173v.234c0 .577-.392 1.076-.954 1.2l-3.32.733v1.78h3.01c.648 0 1.173.526 1.173 1.174v.586zm-5.71-3.524H11.17v-1.97h1.666v1.97z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <span class="block font-bold text-sm text-gray-900 dark:text-white">PlayStation Network</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-600 status-dot transition-all duration-300" id="playstation-dot"></span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400 status-text" id="playstation-status">No conectado</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="toggleConnection('playstation')" id="playstation-btn" class="px-4 py-2 rounded-xl text-xs font-black border border-primary/30 text-gray-800 dark:text-gray-200 hover:bg-primary hover:text-black transition duration-300 cursor-pointer">Conectar</button>
+                        </div>
+                        
+                        <!-- Epic Games -->
+                        <div class="flex items-center justify-between p-3 rounded-2xl bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 hover:border-primary/30 dark:hover:border-primary/20 transition duration-300 group">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-black/5 dark:bg-white/5 flex items-center justify-center group-hover:scale-110 transition duration-300 shadow-inner">
+                                    <svg class="w-6 h-6 text-gray-800 dark:text-gray-200 fill-current" viewBox="0 0 24 24">
+                                        <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm4.72 17.525h-9.44l-2.08-4.525 2.08-4.525h9.44l2.08 4.525-2.08 4.525zm-2.08-3.08v-2.89h-5.28v2.89h5.28z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <span class="block font-bold text-sm text-gray-900 dark:text-white">Epic Games</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-600 status-dot transition-all duration-300" id="epic-dot"></span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400 status-text" id="epic-status">No conectado</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="toggleConnection('epic')" id="epic-btn" class="px-4 py-2 rounded-xl text-xs font-black border border-primary/30 text-gray-800 dark:text-gray-200 hover:bg-primary hover:text-black transition duration-300 cursor-pointer">Conectar</button>
+                        </div>
+                        
+                        <!-- EA Games -->
+                        <div class="flex items-center justify-between p-3 rounded-2xl bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 hover:border-primary/30 dark:hover:border-primary/20 transition duration-300 group">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-black/5 dark:bg-white/5 flex items-center justify-center group-hover:scale-110 transition duration-300 shadow-inner">
+                                    <svg class="w-6 h-6 text-gray-800 dark:text-gray-200 fill-current" viewBox="0 0 24 24">
+                                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 18.23c-3.44 0-6.23-2.79-6.23-6.23s2.79-6.23 6.23-6.23 6.23 2.79 6.23 6.23-2.79 6.23-6.23 6.23zm-1.85-8.31h1.56c.45 0 .8.11 1.05.34.25.22.38.54.38.95 0 .4-.12.72-.37.95s-.6.34-1.06.34h-1.56v-2.58zm0 3.32h1.56c.86 0 1.3-.39 1.3-1.18s-.44-1.16-1.3-1.16h-1.56v2.34zm3.92-3.32h.74v2.58h.56v.74h-1.3v-3.32z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <span class="block font-bold text-sm text-gray-900 dark:text-white">EA Games</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-600 status-dot transition-all duration-300" id="ea-dot"></span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400 status-text" id="ea-status">No conectado</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="toggleConnection('ea')" id="ea-btn" class="px-4 py-2 rounded-xl text-xs font-black border border-primary/30 text-gray-800 dark:text-gray-200 hover:bg-primary hover:text-black transition duration-300 cursor-pointer">Conectar</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script src="modal.js"></script>
+    <script src="main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const isDark = localStorage.getItem('darkMode') === 'true';
+            document.getElementById('dark-mode-toggle').checked = isDark;
+
+            const isBubbles = localStorage.getItem('bubblesEnabled') !== 'false';
+            document.getElementById('bubbles-toggle').checked = isBubbles;
+
+            // Inicializar conexiones gaming
+            initConnections();
+
+            // Si no hay sesión, redirigir al index
+            if (localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // 4. Conexiones Gaming (Backend Real Integrado)
+        async function getConnections() {
+            const token = localStorage.getItem('token');
+            if (!token) return {};
+
+            try {
+                const res = await fetch('http://localhost:3000/api/connections/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Failed to fetch connections');
+                return await res.json();
+            } catch (error) {
+                console.error('Error fetching real connections:', error);
+                return {};
+            }
+        }
+
+        function updateConnectionUI(platform, data) {
+            const dot = document.getElementById(`${platform}-dot`);
+            const status = document.getElementById(`${platform}-status`);
+            const btn = document.getElementById(`${platform}-btn`);
+
+            if (!dot || !status || !btn) return;
+
+            if (data && data.connected) {
+                dot.className = "w-1.5 h-1.5 rounded-full bg-green-500 status-dot shadow-[0_0_8px_#22c55e]";
+                
+                // Mostrar el username real de la plataforma si existe
+                const usernameText = data.username ? data.username : "Conectado";
+                status.innerHTML = `<span class="text-green-500 font-bold">${usernameText}</span> <span class="text-green-500 ml-1">✓</span>`;
+                status.className = "text-xs status-text flex items-center";
+                
+                btn.innerText = "Desconectar";
+                btn.className = "px-4 py-2 rounded-xl text-xs font-black border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white transition duration-300 cursor-pointer";
+            } else {
+                dot.className = "w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-600 status-dot";
+                status.innerText = "No conectado";
+                status.className = "text-xs text-gray-500 dark:text-gray-400 status-text";
+                btn.innerText = "Conectar";
+                btn.className = "px-4 py-2 rounded-xl text-xs font-black border border-primary/30 text-gray-800 dark:text-gray-200 hover:bg-primary hover:text-black transition duration-300 cursor-pointer";
+            }
+        }
+
+        async function initConnections() {
+            // Verificar si venimos de un redirect exitoso o fallido del backend OAuth
+            const urlParams = new URLSearchParams(window.location.search);
+            const connected = urlParams.get('connected');
+            const error = urlParams.get('error');
+
+            if (connected) {
+                showAlert(`Cuenta vinculada con éxito de forma oficial.`);
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            if (error) {
+                showAlert(`Error al vincular cuenta: ${error}`);
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            const conns = await getConnections();
+            ['steam', 'xbox', 'playstation', 'epic', 'ea'].forEach(platform => {
+                updateConnectionUI(platform, conns[platform]);
+            });
+        }
+
+        async function toggleConnection(platform) {
+            const token = localStorage.getItem('token');
+            if (!token) return showAlert("Debes iniciar sesión primero.");
+
+            const btn = document.getElementById(`${platform}-btn`);
+            const isConnected = btn.innerText === "Desconectar";
+
+            if (isConnected) {
+                // Desconectar cuenta (Real API)
+                try {
+                    const res = await fetch(`http://localhost:3000/api/connections/${platform}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        updateConnectionUI(platform, null);
+                        showAlert(`Cuenta desvinculada correctamente.`);
+                    } else {
+                        showAlert(`Error al desvincular cuenta.`);
+                    }
+                } catch (error) {
+                    console.error('Error disconnect:', error);
+                }
+            } else {
+                // Conectar cuenta -> Redirigir al Auth de la API oficial
+                try {
+                    const res = await fetch(`http://localhost:3000/api/connections/${platform}/auth`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await res.json();
+                    if (data.url) {
+                        window.location.href = data.url; // Redirección OAuth
+                    } else {
+                        showAlert("Error obteniendo URL de autenticación.");
+                    }
+                } catch (error) {
+                    console.error('Error initAuth:', error);
+                    showAlert("Error conectando con la plataforma oficial.");
+                }
+            }
+        }
+
+        function updateBubblesPref() {
+            const active = document.getElementById('bubbles-toggle').checked;
+            if (window.setBubblesEnabled) {
+                window.setBubblesEnabled(active);
+            }
+        }
+
+        // 1. Guardar Nombre
+        async function saveNewName() {
+            const newName = document.getElementById('new-username').value.trim();
+            if (!newName) {
+                return showAlert("Por favor, ingresa un nombre válido.");
+            }
+
+            localStorage.setItem('username', newName);
+            updateNavigation(); // Actualizar el nombre en el navbar
+            document.getElementById('new-username').value = '';
+            showAlert(`Nombre actualizado a: ${newName}`);
+        }
+
+        // 2. Cambiar Contraseña
+        async function updatePassword() {
+            const current = document.getElementById('current-pass').value;
+            const newPass = document.getElementById('new-pass').value;
+            const confirm = document.getElementById('confirm-pass').value;
+
+            if (!current || !newPass || !confirm) {
+                return showAlert("Por favor, completa todos los campos.");
+            }
+
+            if (newPass !== confirm) {
+                return showAlert("Las contraseñas nuevas no coinciden.");
+            }
+
+            if (newPass.length < 6) {
+                return showAlert("La contraseña debe tener al menos 6 caracteres.");
+            }
+
+            // Simulación de éxito
+            document.getElementById('current-pass').value = '';
+            document.getElementById('new-pass').value = '';
+            document.getElementById('confirm-pass').value = '';
+            showAlert("Contraseña actualizada correctamente.");
+        }
+
+        // 3. Reportar Usuario
+        async function sendReport() {
+            const target = document.getElementById('report-username').value.trim();
+            const reason = document.getElementById('report-reason').value;
+            const details = document.getElementById('report-details').value.trim();
+
+            if (!target || !reason || !details) {
+                return showAlert("Por favor, completa todos los campos del reporte.");
+            }
+
+            // Simulación de envío
+            document.getElementById('report-username').value = '';
+            document.getElementById('report-reason').value = '';
+            document.getElementById('report-details').value = '';
+            showAlert("Reporte enviado correctamente. El equipo de moderación lo revisará pronto.");
+        }
+    </script>
+</body>
+
+</html>

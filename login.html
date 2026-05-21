@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>re:gaming - Iniciar Sesión</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#C8A2FF',
+                        'primary-dark': '#A575EB',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="bubbles.css">
+</head>
+
+<body class="bg-white dark:bg-black min-h-screen">
+
+
+
+    <!-- Burbujas -->
+    <div id="bubbles-container"></div>
+
+    <div class="auth-page">
+        <div class="auth-container">
+
+            <!-- Logo -->
+            <div class="text-center mb-12">
+                <a href="index.html" class="logo text-6xl md:text-7xl block" data-text="Re:gaming">Re:gaming</a>
+                <p class="text-gray-600 dark:text-gray-400 mt-3 text-lg">
+                    Inicia sesión en tu comunidad
+                </p>
+            </div>
+
+            <!-- Card -->
+            <div class="auth-card">
+                <form id="loginForm">
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                            Usuario o Email
+                        </label>
+                        <input type="text" id="login-username" class="auth-input" placeholder="Tu nombre de usuario"
+                            required>
+                    </div>
+
+                    <div class="mb-8">
+                        <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                            Contraseña
+                        </label>
+                        <input type="password" id="login-password" class="auth-input" placeholder="••••••••" required>
+                    </div>
+
+                    <button type="submit" class="btn-primary w-full py-4 text-lg font-semibold rounded-2xl">
+                        Iniciar Sesión
+                    </button>
+                </form>
+
+                <div class="text-center mt-8">
+                    <a href="register.html" class="text-amber-600 dark:text-amber-400 hover:underline text-lg">
+                        ¿No tienes cuenta? Regístrate
+                    </a>
+                </div>
+            </div>
+
+            <!-- Volver -->
+            <div class="text-center mt-10">
+                <a href="index.html"
+                    class="inline-flex items-center gap-2 text-gray-500 hover:text-amber-600 dark:text-gray-400 transition">
+                    ← Volver al inicio
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+    <script src="modal.js"></script>
+    <script src="auth.js"></script>
+</body>
+
+</html>

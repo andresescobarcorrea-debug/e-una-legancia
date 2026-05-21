@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>re:gaming - Mensajes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#C8A2FF',
+                        'primary-dark': '#A575EB',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="bubbles.css">
+    <style>
+        .chat-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-scroll::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .chat-scroll::-webkit-scrollbar-thumb {
+            background: rgba(200, 162, 255, 0.2);
+            border-radius: 3px;
+        }
+        .chat-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(200, 162, 255, 0.4);
+        }
+        .glow-purple {
+            box-shadow: 0 0 15px rgba(200, 162, 255, 0.15);
+        }
+        .glow-purple-active {
+            box-shadow: 0 0 25px rgba(200, 162, 255, 0.35);
+        }
+    </style>
+</head>
+
+<body class="bg-white dark:bg-black text-gray-900 dark:text-white min-h-screen flex flex-col overflow-hidden">
+
+    <div id="bubbles-container"></div>
+
+    <!-- Navegación -->
+    <nav class="border-b border-gray-200 dark:border-white/5 bg-white/95 dark:bg-black/95 backdrop-blur-md sticky top-0 z-50 transition-colors duration-500 flex-shrink-0">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <!-- Logo + Nombre -->
+            <div class="flex items-center gap-3">
+                <img id="site-logo" src="0b86edf6-a648-48ab-9091-f2ca581a37ed.jpg" alt="re:gaming Logo" class="w-10 h-10 object-contain">
+                <a href="index.html" class="logo text-4xl" data-text="Re:gaming">Re:gaming</a>
+            </div>
+            <!-- Navegación -->
+            <div class="flex items-center gap-8 text-lg" id="nav-menu"></div>
+        </div>
+    </nav>
+
+    <!-- Contenedor Principal (Flexbox adaptado para ocupar el resto de la pantalla) -->
+    <main class="flex-grow flex w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 overflow-hidden relative z-10 h-[calc(100vh-80px)]">
+        <div class="w-full flex bg-[#0c0c0c] border border-white/5 rounded-3xl overflow-hidden shadow-2xl glow-purple">
+            
+            <!-- Barra Lateral Izquierda (Inbox List) -->
+            <div class="w-full lg:w-96 flex flex-col border-r border-white/5 bg-[#080808] flex-shrink-0" id="sidebar-panel">
+                <!-- Header Lateral -->
+                <div class="p-6 border-b border-white/5 flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                            Chats
+                            <span id="chats-count" class="text-xs bg-primary/20 text-primary border border-primary/30 px-2 py-0.5 rounded-full font-mono">0</span>
+                        </h1>
+                        <p class="text-xs text-gray-500 mt-0.5">Mensajes Privados</p>
+                    </div>
+                    <button onclick="showNewChatModal()" class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center hover:bg-primary hover:text-black transition-all duration-300 hover:shadow-[0_0_15px_rgba(200,162,255,0.4)] cursor-pointer" title="Iniciar chat privado">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Selector de Pestañas (Tabs) -->
+                <div class="px-4 py-2 border-b border-white/5 flex gap-2">
+                    <button id="tab-chats" onclick="switchSidebarTab('chats')" class="flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-300 bg-primary text-black shadow-md shadow-primary/10 cursor-pointer">
+                        Chats
+                    </button>
+                    <button id="tab-friends" onclick="switchSidebarTab('friends')" class="flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-300 bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white cursor-pointer">
+                        Amigos
+                    </button>
+                </div>
+
+                <!-- Buscador de Chats -->
+                <div class="p-4 border-b border-white/5">
+                    <div class="flex gap-2 items-center">
+                        <div class="relative flex-grow">
+                            <input type="text" id="search-chats" placeholder="Buscar chat privado..." class="w-full bg-[#111] border border-white/5 rounded-2xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/40 transition-all duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-gray-500 absolute left-3.5 top-3.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                            </svg>
+                        </div>
+                        <button id="add-friend-btn" onclick="openAddFriendModal()" class="hidden w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center hover:bg-primary hover:text-black transition-all duration-300 hover:shadow-[0_0_15px_rgba(200,162,255,0.4)] cursor-pointer" title="Agregar Amigo">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lista de conversaciones (Scrollable) -->
+                <div id="chats-list" class="flex-1 overflow-y-auto chat-scroll p-3 space-y-2">
+                    <!-- Se inyecta dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Panel de Chat Derecho -->
+            <div class="hidden lg:flex flex-1 flex-col bg-[#050505] relative" id="chat-window-panel">
+                
+                <!-- Estado Vacío (Default) -->
+                <div id="chat-empty-state" class="flex-grow flex flex-col items-center justify-center p-8 text-center">
+                    <div class="w-20 h-20 rounded-full bg-primary/5 border border-primary/10 flex items-center justify-center mb-6 animate-pulse glow-purple">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10 text-primary">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white mb-2">re:gaming Messenger</h2>
+                    <p class="text-sm text-gray-500 max-w-md">Selecciona un chat privado de la barra lateral para empezar a chatear o inicia una nueva conversación con un amigo.</p>
+                </div>
+
+                <!-- Chat Activo -->
+                <div id="chat-active-state" class="hidden flex-grow flex flex-col overflow-hidden">
+                    <!-- Header del Chat -->
+                    <div class="p-5 border-b border-white/5 bg-[#080808] flex items-center justify-between flex-shrink-0">
+                        <div class="flex items-center gap-3">
+                            <!-- Botón Atrás (Visible en Mobile/Tablet) -->
+                            <button onclick="toggleMobileView(true)" class="lg:hidden p-2 rounded-lg bg-white/5 text-gray-400 hover:text-white transition cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                                </svg>
+                            </button>
+                            <!-- Avatar de Grupo -->
+                            <div id="active-chat-avatar" class="w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg text-black font-mono shadow-md">
+                                CH
+                            </div>
+                            <div>
+                                <h2 id="active-chat-title" class="text-lg font-bold text-white leading-snug line-clamp-1">Título del Chat</h2>
+                                <p class="text-xs text-gray-500 flex items-center gap-1.5 mt-0.5">
+                                    <span class="w-2 h-2 rounded-full bg-green-500 inline-block animate-ping"></span>
+                                    <span>Conversación con:</span>
+                                    <strong id="active-chat-author" class="text-primary font-bold">Username</strong>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span id="active-chat-votes-badge" class="px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-xl text-xs text-primary font-bold flex items-center gap-1">
+                                <span>🔒 Chat Privado</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Mensajes (Conversación) -->
+                    <div id="chat-messages-container" class="flex-grow overflow-y-auto chat-scroll p-6 space-y-4 bg-gradient-to-b from-[#050505] to-[#080808]">
+                        <!-- Se renderizan los chat bubbles -->
+                    </div>
+
+                    <!-- Input de Mensaje -->
+                    <div class="p-4 border-t border-white/5 bg-[#080808] flex-shrink-0">
+                        <form id="chat-input-form" class="flex items-center gap-3" onsubmit="sendChatMessage(event)">
+                            <input type="text" id="chat-message-input" placeholder="Escribe un mensaje en la conversación..." class="flex-grow bg-[#111] border border-white/5 rounded-2xl py-3 px-5 text-sm text-white focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/40 transition-all duration-300" autocomplete="off">
+                            <button type="submit" class="w-12 h-12 rounded-2xl bg-primary text-black flex items-center justify-center hover:bg-primary-dark transition-all duration-300 hover:shadow-[0_0_15px_rgba(200,162,255,0.5)] cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <script src="modal.js"></script>
+    <script src="main.js"></script>
+    <script>
+        // Configurar helper apiFetch local por si acaso
+        window.apiFetch = window.apiFetch || async function(endpoint, options = {}) {
+            const token = localStorage.getItem('token');
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            const response = await fetch(endpoint, {
+                ...options,
+                headers
+            });
+            if (response.status === 401) {
+                localStorage.clear();
+                window.location.href = 'login.html';
+                throw new Error('Sesión expirada');
+            }
+            return response.json();
+        };
+
+        // Estado del Chat
+        let conversationsList = [];
+        let activeChatId = null;
+        let activeChatComments = [];
+        let autoRefreshInterval = null;
+
+        // Nuevas variables de Amigos y Grupos
+        let activeTab = 'chats'; // 'chats' o 'friends'
+        let friendsList = [];
+        let contextFriendId = null;
+        let contextFriendName = '';
+
+        // Alternar entre pestañas Chats y Amigos
+        async function switchSidebarTab(tab) {
+            activeTab = tab;
+            const tabChats = document.getElementById('tab-chats');
+            const tabFriends = document.getElementById('tab-friends');
+            const searchInput = document.getElementById('search-chats');
+            const addFriendBtn = document.getElementById('add-friend-btn');
+            
+            if (tab === 'chats') {
+                tabChats.className = "flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-300 bg-primary text-black shadow-md shadow-primary/10 cursor-pointer";
+                tabFriends.className = "flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-300 bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white cursor-pointer";
+                searchInput.placeholder = "Buscar chat privado...";
+                if (addFriendBtn) addFriendBtn.classList.add('hidden');
+                await loadConversations();
+            } else {
+                tabChats.className = "flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-300 bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white cursor-pointer";
+                tabFriends.className = "flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-300 bg-primary text-black shadow-md shadow-primary/10 cursor-pointer";
+                searchInput.placeholder = "Buscar amigo...";
+                if (addFriendBtn) addFriendBtn.classList.remove('hidden');
+                await loadFriends();
+            }
+        }
+
+        // Cargar amigos de la base de datos
+        async function loadFriends() {
+            try {
+                const data = await window.apiFetch('/api/forum/friends');
+                if (data.success && data.friends) {
+                    friendsList = data.friends;
+                    await renderFriends(document.getElementById('search-chats').value);
+                }
+            } catch (error) {
+                console.error("Error loading friends:", error);
+            }
+        }
+
+        // Cargar solicitudes de amistad pendientes desde notificaciones
+        async function renderPendingRequests() {
+            const token = localStorage.getItem('token');
+            if (!token) return '';
+
+            try {
+                const response = await fetch('/api/notifications', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    const pendings = data.notifications.filter(n => n.type === 'friend_request' && !n.is_read);
+                    if (pendings.length > 0) {
+                        let html = `
+                            <div class="px-2 py-1 mb-2">
+                                <span class="text-[10px] font-bold text-primary uppercase tracking-wider block mb-2">🔔 Solicitudes Pendientes</span>
+                                <div class="space-y-2">
+                        `;
+                        pendings.forEach(p => {
+                            const avatar = getAvatarStyle(p.sender_username);
+                            html += `
+                                <div class="flex items-center justify-between p-2.5 bg-primary/5 border border-primary/20 rounded-2xl">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <div class="w-8 h-8 rounded-full bg-gradient-to-br ${avatar.gradient} flex items-center justify-center text-black font-bold text-xs font-mono shadow shrink-0">
+                                            ${avatar.initials}
+                                        </div>
+                                        <span class="text-xs font-bold text-white truncate shrink-0">${p.sender_username}</span>
+                                    </div>
+                                    <button onclick="acceptFriendRequestReal(event, ${p.sender_id}, ${p.id}, '${p.sender_username}')" class="px-2.5 py-1 bg-primary text-black rounded-lg text-[10px] font-bold hover:bg-primary-dark transition cursor-pointer shrink-0 shadow shadow-primary/10">
+                                        Aceptar
+                                    </button>
+                                </div>
+                            `;
+                        });
+                        html += `
+                                </div>
+                                <div class="border-b border-white/5 my-3"></div>
+                            </div>
+                        `;
+                        return html;
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching pending friend requests:', err);
+            }
+            return '';
+        }
+
+        window.acceptFriendRequestReal = async function(e, friendId, notificationId, username) {
+            e.stopPropagation();
+            const btn = e.currentTarget;
+            btn.disabled = true;
+            btn.textContent = 'Procesando...';
+
+            try {
+                // Aceptar amistad
+                const data = await window.apiFetch('/api/forum/friends/accept', {
+                    method: 'POST',
+                    body: JSON.stringify({ friendId })
+                });
+
+                if (data.success) {
+                    // Marcar notificación como leída
+                    const token = localStorage.getItem('token');
+                    await fetch(`/api/notifications/${notificationId}/read`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    if (window.showAlert) window.showAlert(`¡Ahora eres amigo de ${username}!`);
+                    // Recargar todo
+                    await loadFriends();
+                    if (window.fetchNotifications) window.fetchNotifications();
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = 'Aceptar';
+                    if (window.showAlert) window.showAlert(data.message || 'Error al aceptar solicitud');
+                }
+            } catch (err) {
+                console.error('Error accepting friend request:', err);
+                btn.disabled = false;
+                btn.textContent = 'Aceptar';
+            }
+        };
+
+        // Renderizar la lista de amigos
+        async function renderFriends(filteredText = "") {
+            const listContainer = document.getElementById('chats-list');
+            listContainer.innerHTML = '';
+            
+            // Cargar solicitudes pendientes al principio
+            const pendingHTML = await renderPendingRequests();
+            
+            const filtered = friendsList.filter(f => 
+                f.username.toLowerCase().includes(filteredText.toLowerCase())
+            );
+
+            if (filtered.length === 0 && !pendingHTML) {
+                listContainer.innerHTML = `
+                    <div class="text-center py-8 text-gray-500 text-sm">
+                        No se encontraron amigos
+                    </div>
+                `;
+                return;
+            }
+
+            let friendsHTML = pendingHTML;
+
+            filtered.forEach(f => {
+                const avatar = getAvatarStyle(f.username);
+                friendsHTML += `
+                    <div onclick="startDirectChat(${f.id}, '${f.username}')" oncontextmenu="showContextMenu(event, ${f.id}, '${f.username}')" class="flex items-center justify-between gap-3 p-3.5 rounded-2xl cursor-pointer border border-transparent hover:bg-white/5 transition-all duration-300 relative group select-none">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <!-- Avatar con estado de conexión verde brillante -->
+                            <div class="relative flex-shrink-0">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br ${avatar.gradient} flex items-center justify-center text-black font-bold text-sm font-mono shadow-md">
+                                    ${avatar.initials}
+                                </div>
+                                <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[#080808] rounded-full"></span>
+                            </div>
+                            <!-- Info -->
+                            <div class="min-w-0">
+                                <h3 class="text-sm font-bold text-white truncate leading-tight">${f.username}</h3>
+                                <span class="text-[10px] text-gray-500 flex items-center gap-1 mt-0.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block animate-pulse"></span>
+                                    <span>Conectado</span>
+                                </span>
+                            </div>
+                        </div>
+                        <!-- Botón chat rápido en hover -->
+                        <button onclick="event.stopPropagation(); startDirectChat(${f.id}, '${f.username}')" class="opacity-0 group-hover:opacity-100 p-2 rounded-xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary hover:text-black transition-all duration-300 cursor-pointer" title="Enviar Mensaje Directo">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-2.88C4.07 16.79 3.5 15.013 3.5 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+                            </svg>
+                        </button>
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = friendsHTML;
+        }
+
+        // Mostrar menú contextual al hacer clic derecho
+        function showContextMenu(e, friendId, friendName) {
+            e.preventDefault();
+            contextFriendId = friendId;
+            contextFriendName = friendName;
+            
+            const menu = document.getElementById('context-menu');
+            menu.classList.remove('hidden');
+            
+            // Posicionar el menú
+            menu.style.top = `${e.pageY}px`;
+            menu.style.left = `${e.pageX}px`;
+        }
+
+        // Acciones del menú contextual
+        async function menuAction(action) {
+            document.getElementById('context-menu').classList.add('hidden');
+            if (action === 'dm') {
+                await startDirectChat(contextFriendId, contextFriendName);
+            } else if (action === 'group') {
+                openGroupCreatorModal();
+            }
+        }
+
+        // Iniciar chat directo (DM)
+        async function startDirectChat(friendId, friendName) {
+            try {
+                const data = await window.apiFetch('/api/forum/groups', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        title: `Chat con ${friendName}`,
+                        participantIds: [friendId]
+                    })
+                });
+                
+                if (data.success) {
+                    await loadConversations();
+                    await switchSidebarTab('chats');
+                    selectConversation(data.group.id);
+                } else {
+                    if (window.showAlert) window.showAlert(data.message || "Error al iniciar chat");
+                }
+            } catch (err) {
+                console.error("Error creating direct chat:", err);
+            }
+        }
+
+        // Modal de Grupos
+        function openGroupCreatorModal() {
+            const modal = document.getElementById('group-creator-modal');
+            modal.classList.remove('hidden');
+            
+            const nameInput = document.getElementById('group-name-input');
+            nameInput.value = '';
+            
+            // Renderizar la checklist
+            const list = document.getElementById('modal-friends-list');
+            list.innerHTML = '';
+            
+            friendsList.forEach(f => {
+                const isChecked = f.id === contextFriendId ? 'checked' : '';
+                const avatar = getAvatarStyle(f.username);
+                
+                list.innerHTML += `
+                    <label class="flex items-center justify-between p-2 hover:bg-white/5 rounded-xl cursor-pointer transition select-none">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br ${avatar.gradient} flex items-center justify-center text-black font-bold text-xs font-mono shadow">
+                                ${avatar.initials}
+                            </div>
+                            <span class="text-sm font-bold text-white">${f.username}</span>
+                        </div>
+                        <input type="checkbox" name="group-friend-check" value="${f.id}" ${isChecked} class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary focus:ring-offset-0 bg-[#111] border-white/5 cursor-pointer">
+                    </label>
+                `;
+            });
+        }
+
+        function closeGroupModal() {
+            document.getElementById('group-creator-modal').classList.add('hidden');
+        }
+
+        // Crear el grupo en base de datos
+        async function submitGroupCreation() {
+            const nameInput = document.getElementById('group-name-input');
+            const groupName = nameInput.value.trim();
+            
+            const checkboxes = document.querySelectorAll('input[name="group-friend-check"]:checked');
+            const participantIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+            
+            if (participantIds.length < 2) {
+                if (window.showAlert) window.showAlert("Debes seleccionar al menos 2 amigos para crear un grupo.");
+                else alert("Debes seleccionar al menos 2 amigos para crear un grupo.");
+                return;
+            }
+            
+            try {
+                const data = await window.apiFetch('/api/forum/groups', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        title: groupName || `Grupo de ${localStorage.getItem('username')}`,
+                        participantIds: participantIds
+                    })
+                });
+                
+                if (data.success) {
+                    closeGroupModal();
+                    if (window.showAlert) window.showAlert("¡Grupo creado exitosamente!");
+                    await switchSidebarTab('chats');
+                    selectConversation(data.group.id);
+                } else {
+                    if (window.showAlert) window.showAlert(data.message || "Error al crear el grupo");
+                }
+            } catch (err) {
+                console.error("Error creating group:", err);
+            }
+        }
+
+        // Cargar conversaciones de DMs y Grupos de SQL Server
+        async function loadConversations() {
+            try {
+                const data = await window.apiFetch('/api/forum/my-groups');
+                if (data.success && data.debates) {
+                    conversationsList = data.debates;
+                    document.getElementById('chats-count').textContent = conversationsList.length;
+                    renderConversations(document.getElementById('search-chats').value);
+                }
+            } catch (error) {
+                console.error("Error loading conversations:", error);
+            }
+        }
+
+        // Obtener iniciales y color degradado aleatorio para el avatar
+        function getAvatarStyle(title) {
+            const initials = (title || "C").substring(0, 2).toUpperCase();
+            const colors = [
+                'from-[#C8A2FF] to-[#8B5CF6]',
+                'from-amber-400 to-orange-500',
+                'from-emerald-400 to-teal-600',
+                'from-cyan-400 to-blue-500',
+                'from-pink-400 to-rose-600'
+            ];
+            
+            // Asignar color consistente basado en el título
+            const charSum = initials.charCodeAt(0) + (initials.charCodeAt(1) || 0);
+            const selectedGradient = colors[charSum % colors.length];
+            return { initials, gradient: selectedGradient };
+        }
+
+        // Renderizar la lista de chats en la barra lateral
+        function renderConversations(filteredText = "") {
+            const listContainer = document.getElementById('chats-list');
+            listContainer.innerHTML = '';
+
+            const filtered = conversationsList.filter(c => 
+                c.title.toLowerCase().includes(filteredText.toLowerCase()) ||
+                c.username.toLowerCase().includes(filteredText.toLowerCase())
+            );
+
+            if (filtered.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center py-8 text-gray-500 text-sm">
+                        No se encontraron mensajes
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(c => {
+                const avatar = getAvatarStyle(c.title);
+                const isActive = activeChatId === c.id;
+                
+                const timeString = c.created_at
+                    ? new Date(c.created_at).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })
+                    : 'N/A';
+
+                const itemHTML = `
+                    <div onclick="selectConversation(${c.id})" class="flex items-center gap-3 p-3.5 rounded-2xl cursor-pointer transition-all duration-300 ${isActive ? 'bg-primary/10 border border-primary/20 shadow-[0_0_15px_rgba(200,162,255,0.1)]' : 'border border-transparent hover:bg-white/5'}">
+                        <!-- Avatar -->
+                        <div class="relative flex-shrink-0">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br ${avatar.gradient} flex items-center justify-center text-black font-bold text-sm font-mono shadow-md">
+                                ${avatar.initials}
+                            </div>
+                            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[#080808] rounded-full"></span>
+                        </div>
+                        <!-- Info -->
+                        <div class="flex-grow min-w-0">
+                            <div class="flex items-center justify-between gap-2">
+                                <h3 class="text-sm font-bold text-white truncate leading-tight">${c.title}</h3>
+                                <span class="text-[10px] text-gray-500 whitespace-nowrap">${timeString}</span>
+                            </div>
+                            <div class="flex items-center justify-between mt-1 gap-2">
+                                <p class="text-xs text-gray-400 truncate font-semibold">Creado por: ${c.username}</p>
+                                <span class="text-[10px] bg-primary/20 border border-primary/30 px-1.5 py-0.5 rounded-full font-mono text-primary font-bold">${c.comments_count} msg</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                listContainer.innerHTML += itemHTML;
+            });
+        }
+
+        // Seleccionar una conversación
+        async function selectConversation(id) {
+            activeChatId = id;
+            
+            // Cargar y mostrar vistas
+            document.getElementById('chat-empty-state').classList.add('hidden');
+            const activePanel = document.getElementById('chat-active-state');
+            activePanel.classList.remove('hidden');
+
+            // Renderizar la lista de chats con el estado activo
+            renderConversations(document.getElementById('search-chats').value);
+
+            // Obtener datos del chat seleccionado
+            const chat = conversationsList.find(c => c.id === id);
+            if (chat) {
+                const avatar = getAvatarStyle(chat.title);
+                const avatarElem = document.getElementById('active-chat-avatar');
+                avatarElem.textContent = avatar.initials;
+                avatarElem.className = `w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg text-black font-mono shadow-md bg-gradient-to-br ${avatar.gradient}`;
+                
+                document.getElementById('active-chat-title').textContent = chat.title;
+                document.getElementById('active-chat-author').textContent = chat.username;
+                document.getElementById('active-chat-votes').textContent = chat.score || 0;
+            }
+
+            // Mostrar esqueleto de carga en mensajes
+            const msgContainer = document.getElementById('chat-messages-container');
+            msgContainer.innerHTML = `
+                <div class="flex items-center justify-center py-12">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+            `;
+
+            // Alternar vista móvil (ocultar sidebar y mostrar chat)
+            toggleMobileView(false);
+
+            // Cargar comentarios reales
+            await loadChatComments(id, true);
+
+            // Iniciar auto-actualización
+            startAutoRefresh(id);
+        }
+
+        // Cargar los comentarios de un chat (Debate)
+        async function loadChatComments(id, scrollToBottom = false) {
+            if (activeChatId !== id) return;
+
+            try {
+                const data = await window.apiFetch(`/api/forum/debates/${id}/comments`);
+                if (data.success && data.comments) {
+                    activeChatComments = data.comments;
+                    renderChatMessages(scrollToBottom);
+                }
+            } catch (error) {
+                console.error("Error loading chat comments:", error);
+            }
+        }
+
+        // Renderizar los mensajes como burbujas de chat
+        function renderChatMessages(scrollToBottom = false) {
+            const msgContainer = document.getElementById('chat-messages-container');
+            const currentUser = localStorage.getItem('username');
+            
+            let messagesHTML = '';
+
+            // Mensaje Inicial (Sistema/Creador)
+            const activeChat = conversationsList.find(c => c.id === activeChatId);
+            if (activeChat) {
+                const timeStr = activeChat.created_at 
+                    ? new Date(activeChat.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+                    : '';
+                messagesHTML += `
+                    <!-- Tema Central -->
+                    <div class="flex flex-col items-center py-6">
+                        <div class="bg-primary/5 border border-primary/10 rounded-3xl p-5 max-w-md text-center shadow-lg shadow-primary/5">
+                            <span class="text-[10px] uppercase font-bold tracking-widest text-primary block mb-2">🔒 Conversación Directa Iniciada</span>
+                            <p class="text-sm text-gray-300 leading-relaxed">
+                                Has iniciado un chat privado sobre: <strong class="text-white">"${activeChat.title}"</strong>. Los mensajes de esta conversación son directos y personales.
+                            </p>
+                            <span class="text-[10px] text-gray-500 block mt-3">Creador: ${activeChat.username} • ${timeStr}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Renderizar los comentarios de la base de datos
+            if (activeChatComments.length === 0) {
+                messagesHTML += `
+                    <div class="text-center py-10 text-gray-500 text-xs">
+                        No hay mensajes todavía. ¡Sé el primero en responder!
+                    </div>
+                `;
+            } else {
+                activeChatComments.forEach(msg => {
+                    const isMe = currentUser && msg.username.toLowerCase() === currentUser.toLowerCase();
+                    const timeStr = msg.created_at
+                        ? new Date(msg.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+                        : '';
+
+                    if (isMe) {
+                        // Mensaje enviado por mí (Derecha, Morado)
+                        messagesHTML += `
+                            <div class="flex justify-end items-end gap-2.5">
+                                <div class="flex flex-col items-end max-w-[70%]">
+                                    <span class="text-[10px] text-gray-500 font-semibold mb-0.5">Tú</span>
+                                    <div class="bg-gradient-to-br from-primary to-primary-dark text-black font-medium text-sm py-2.5 px-4 rounded-2xl rounded-tr-none shadow-lg shadow-primary/10">
+                                        ${msg.content}
+                                    </div>
+                                    <span class="text-[9px] text-gray-500 mt-1">${timeStr}</span>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // Mensaje recibido (Izquierda, Gris)
+                        const avatar = getAvatarStyle(msg.username);
+                        messagesHTML += `
+                            <div class="flex justify-start items-end gap-2.5">
+                                <!-- Avatar del Remitente -->
+                                <div class="w-8 h-8 rounded-lg bg-gradient-to-br ${avatar.gradient} flex items-center justify-center text-black font-bold text-xs font-mono shadow flex-shrink-0" title="${msg.username}">
+                                    ${avatar.initials}
+                                </div>
+                                <div class="flex flex-col items-start max-w-[70%]">
+                                    <span class="text-[10px] text-gray-400 font-bold mb-0.5">${msg.username}</span>
+                                    <div class="bg-[#181818] border border-white/5 text-white text-sm py-2.5 px-4 rounded-2xl rounded-tl-none shadow-md">
+                                        ${msg.content}
+                                    </div>
+                                    <span class="text-[9px] text-gray-500 mt-1">${timeStr}</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+            }
+
+            msgContainer.innerHTML = messagesHTML;
+
+            // Desplazar hacia abajo si es necesario
+            if (scrollToBottom) {
+                setTimeout(() => {
+                    msgContainer.scrollTop = msgContainer.scrollHeight;
+                }, 50);
+            }
+        }
+
+        // Enviar un mensaje de chat (añadir comentario)
+        async function sendChatMessage(e) {
+            e.preventDefault();
+            
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            if (!isLoggedIn) {
+                if (window.showAlert) window.showAlert("Inicia sesión para enviar mensajes.");
+                else alert("Inicia sesión para enviar mensajes.");
+                return;
+            }
+
+            const input = document.getElementById('chat-message-input');
+            const content = input.value.trim();
+            if (!content || !activeChatId) return;
+
+            // Limpiar input de inmediato para sensación de fluidez
+            input.value = '';
+
+            try {
+                const response = await fetch(`/api/forum/debates/${activeChatId}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ content })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Refrescar y forzar desplazamiento al fondo
+                    await loadChatComments(activeChatId, true);
+                    // Actualizar silenciosamente el número de comentarios en el sidebar
+                    loadConversations();
+                } else {
+                    console.error("Error sending message:", data.message);
+                }
+            } catch (error) {
+                console.error("Connection error:", error);
+            }
+        }
+
+        // Crear una nueva conversación (Debate / Chat Privado)
+        async function showNewChatModal() {
+            if (!localStorage.getItem('isLoggedIn')) {
+                if (window.showAlert) window.showAlert("Debes iniciar sesión para iniciar un chat privado.");
+                else alert("Debes iniciar sesión para iniciar un chat privado.");
+                return;
+            }
+
+            const results = await showForm("Nuevo Chat Privado", [
+                { id: 'title', type: 'text', placeholder: 'Nombre del contacto o asunto privado (ej. Chat con GamerX / Duda de Tradeo)' },
+                { id: 'description', type: 'textarea', placeholder: 'Escribe tu primer mensaje privado aquí...', rows: 3 }
+            ]);
+
+            if (results && results.title.trim().length > 0 && results.description.trim().length > 0) {
+                try {
+                    const data = await window.apiFetch('/api/forum/debates', {
+                        method: 'POST',
+                        body: JSON.stringify({ 
+                            title: results.title, 
+                            description: results.description 
+                        })
+                    });
+
+                    if (data.success) {
+                        if (window.showAlert) window.showAlert("Chat privado iniciado correctamente");
+                        
+                        // Recargar lista y seleccionar el nuevo chat creado
+                        await loadConversations();
+                        if (data.debate && data.debate.id) {
+                            selectConversation(data.debate.id);
+                        } else {
+                            // Si no viene el id directo, seleccionar el primero
+                            if (conversationsList.length > 0) {
+                                selectConversation(conversationsList[0].id);
+                            }
+                        }
+                    } else {
+                        if (window.showAlert) window.showAlert(data.message || "Error al iniciar el chat");
+                    }
+                } catch (err) {
+                    console.error("Error creating debate:", err);
+                    if (window.showAlert) window.showAlert("Error conectando con el servidor");
+                }
+            }
+        }
+
+        // Iniciar bucle de auto-refresco para que se sienta tiempo real
+        function startAutoRefresh(id) {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            
+            autoRefreshInterval = setInterval(() => {
+                loadChatComments(id, false);
+            }, 4000); // Cada 4 segundos
+        }
+
+        // Alternar vista en móvil (Sidebar vs Ventana de Chat)
+        function toggleMobileView(showSidebar) {
+            const sidebar = document.getElementById('sidebar-panel');
+            const chatWin = document.getElementById('chat-window-panel');
+            
+            if (showSidebar) {
+                sidebar.classList.remove('hidden');
+                chatWin.classList.add('hidden', 'lg:flex');
+            } else {
+                sidebar.classList.add('hidden', 'lg:flex');
+                chatWin.classList.remove('hidden');
+                chatWin.classList.add('flex');
+            }
+        }
+
+        // Eventos al cargar
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Buscador de barra lateral
+            document.getElementById('search-chats').addEventListener('input', async (e) => {
+                if (activeTab === 'chats') {
+                    renderConversations(e.target.value);
+                } else {
+                    await renderFriends(e.target.value);
+                }
+            });
+
+            // Cerrar menú contextual al hacer clic fuera
+            window.addEventListener('click', () => {
+                document.getElementById('context-menu').classList.add('hidden');
+            });
+
+            // Cargar datos
+            await loadConversations();
+
+            // Si hay chats y estamos en escritorio, seleccionar el primero por defecto
+            if (window.innerWidth >= 1024 && conversationsList.length > 0) {
+                selectConversation(conversationsList[0].id);
+            }
+        });
+
+        // Limpiar intervalo al salir
+        window.addEventListener('beforeunload', () => {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+        });
+
+        // Funciones del Modal de Agregar Amigos
+        window.openAddFriendModal = function() {
+            document.getElementById('add-friend-modal').classList.remove('hidden');
+            document.getElementById('friend-search-input').value = '';
+            document.getElementById('search-users-results').innerHTML = `
+                <p class="text-xs text-gray-500 text-center py-4">Ingresa un nombre para buscar jugadores globales.</p>
+            `;
+        };
+
+        window.closeAddFriendModal = function() {
+            document.getElementById('add-friend-modal').classList.add('hidden');
+        };
+
+        window.searchGlobalUsers = async function() {
+            const input = document.getElementById('friend-search-input');
+            const query = input.value.trim();
+            const resultsContainer = document.getElementById('search-users-results');
+
+            if (!query) {
+                resultsContainer.innerHTML = `
+                    <p class="text-xs text-amber-500 text-center py-4">Por favor escribe un nombre de usuario.</p>
+                `;
+                return;
+            }
+
+            resultsContainer.innerHTML = `
+                <div class="flex items-center justify-center py-4">
+                    <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+                </div>
+            `;
+
+            try {
+                const data = await window.apiFetch(`/api/forum/users/search?q=${encodeURIComponent(query)}`);
+                if (data.success) {
+                    renderGlobalSearchResults(data.users);
+                } else {
+                    resultsContainer.innerHTML = `
+                        <p class="text-xs text-red-500 text-center py-4">${data.message || 'Error en la búsqueda'}</p>
+                    `;
+                }
+            } catch (err) {
+                console.error('Error searching global users:', err);
+                resultsContainer.innerHTML = `
+                    <p class="text-xs text-red-500 text-center py-4">Error al conectar con el servidor.</p>
+                `;
+            }
+        };
+
+        function renderGlobalSearchResults(users) {
+            const resultsContainer = document.getElementById('search-users-results');
+            if (users.length === 0) {
+                resultsContainer.innerHTML = `
+                    <p class="text-xs text-gray-500 text-center py-4">No se encontraron jugadores con ese nombre.</p>
+                `;
+                return;
+            }
+
+            resultsContainer.innerHTML = users.map(u => {
+                const avatar = getAvatarStyle(u.username);
+                return `
+                    <div class="flex items-center justify-between p-2 hover:bg-white/5 rounded-xl transition">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br ${avatar.gradient} flex items-center justify-center text-black font-bold text-xs font-mono shadow shrink-0">
+                                ${avatar.initials}
+                            </div>
+                            <div class="min-w-0">
+                                <span class="text-sm font-bold text-white block truncate leading-tight">${u.username}</span>
+                                <span class="text-[10px] text-gray-500">Score: ${u.score}</span>
+                            </div>
+                        </div>
+                        <button onclick="sendFriendRequestReal(event, ${u.id}, '${u.username}')" class="px-3 py-1.5 bg-primary/20 hover:bg-primary border border-primary/30 hover:border-transparent text-primary hover:text-black rounded-lg text-xs font-bold transition cursor-pointer shrink-0">
+                            + Agregar
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.sendFriendRequestReal = async function(e, friendId, username) {
+            e.stopPropagation();
+            const btn = e.currentTarget;
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
+
+            try {
+                const data = await window.apiFetch('/api/forum/friends/request', {
+                    method: 'POST',
+                    body: JSON.stringify({ friendId })
+                });
+
+                if (data.success) {
+                    btn.className = 'px-3 py-1.5 bg-green-950/40 border border-green-500/40 text-green-400 rounded-lg text-xs font-bold shrink-0 cursor-default';
+                    btn.textContent = '¡Enviado!';
+                    if (window.showAlert) window.showAlert(`Solicitud enviada a ${username}`);
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = '+ Agregar';
+                    if (window.showAlert) window.showAlert(data.message || 'Error al enviar solicitud');
+                }
+            } catch (err) {
+                console.error('Error sending friend request:', err);
+                btn.disabled = false;
+                btn.textContent = '+ Agregar';
+            }
+        };
+    </script>
+
+    <!-- Menú Contextual Gamer (Estilo Discord) -->
+    <div id="context-menu" class="hidden absolute bg-[#0c0c0c]/95 backdrop-blur-md border border-primary/20 rounded-2xl p-2 z-[100] shadow-[0_0_20px_rgba(200,162,255,0.2)] w-52 transition-all duration-300">
+        <button onclick="menuAction('dm')" class="w-full text-left px-4 py-2.5 text-xs font-bold text-white hover:bg-primary hover:text-black rounded-xl transition flex items-center gap-2 cursor-pointer">
+            💬 Enviar Mensaje Directo
+        </button>
+        <button onclick="menuAction('group')" class="w-full text-left px-4 py-2.5 text-xs font-bold text-white hover:bg-primary hover:text-black rounded-xl transition flex items-center gap-2 cursor-pointer mt-1">
+            👥 Crear Nuevo Grupo
+        </button>
+    </div>
+
+    <!-- Modal Selector de Amigos para Creación de Grupos -->
+    <div id="group-creator-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-[#0b0b0b] border border-white/5 rounded-3xl p-6 w-full max-w-md shadow-2xl glow-purple transform transition-all duration-300">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <span>👥 Crear Grupo de Juego</span>
+                </h2>
+                <button onclick="closeGroupModal()" class="text-gray-400 hover:text-white transition cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Inputs -->
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Nombre del Grupo (Opcional)</label>
+                    <input type="text" id="group-name-input" placeholder="ej. Squad Call of Duty / Los ProGamerz" class="w-full bg-[#111] border border-white/5 rounded-2xl py-3 px-4 text-sm text-white focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/40 transition">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Seleccionar Amigos (Mínimo 2)</label>
+                    <div id="modal-friends-list" class="max-h-48 overflow-y-auto chat-scroll space-y-2 pr-1">
+                        <!-- Amigos sembrados dinámicamente -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="mt-6 flex gap-3">
+                <button onclick="closeGroupModal()" class="flex-1 py-3 bg-white/5 text-white rounded-2xl font-bold text-sm hover:bg-white/10 transition cursor-pointer">
+                    Cancelar
+                </button>
+                <button onclick="submitGroupCreation()" class="flex-1 py-3 bg-primary text-black rounded-2xl font-bold text-sm hover:bg-primary-dark transition hover:shadow-[0_0_15px_rgba(200,162,255,0.4)] cursor-pointer">
+                    Iniciar Grupo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Buscar y Agregar Amigos -->
+    <div id="add-friend-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-[#0b0b0b] border border-white/5 rounded-3xl p-6 w-full max-w-md shadow-2xl glow-purple transform transition-all duration-300">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <span>👾 Buscar Jugadores</span>
+                </h2>
+                <button onclick="closeAddFriendModal()" class="text-gray-400 hover:text-white transition cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Nombre de Usuario o Gamertag</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="friend-search-input" placeholder="Escribe el nombre de usuario..." class="flex-grow bg-[#111] border border-white/5 rounded-2xl py-3 px-4 text-sm text-white focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/40 transition">
+                        <button onclick="searchGlobalUsers()" class="px-4 bg-primary text-black rounded-2xl font-bold text-sm hover:bg-primary-dark transition cursor-pointer flex items-center justify-center">
+                            🔍
+                        </button>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Resultados de Búsqueda</label>
+                    <div id="search-users-results" class="max-h-48 overflow-y-auto chat-scroll space-y-2 pr-1">
+                        <p class="text-xs text-gray-500 text-center py-4">Ingresa un nombre para buscar jugadores globales.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <button onclick="closeAddFriendModal()" class="w-full py-3 bg-white/5 text-white rounded-2xl font-bold text-sm hover:bg-white/10 transition cursor-pointer">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

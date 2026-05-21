@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>re:gaming - Registro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#C8A2FF',
+                        'primary-dark': '#A575EB',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="bubbles.css">
+</head>
+
+<body class="min-h-screen bg-white dark:bg-black">
+    <div id="bubbles-container"></div>
+
+    <div class="min-h-screen flex items-center justify-center px-6 py-12">
+        <div class="max-w-md w-full">
+            <div class="text-center mb-10">
+                <a href="index.html" class="logo text-5xl" data-text="Re:gaming">Re:gaming</a>
+                <p class="text-gray-600 dark:text-gray-400 mt-3">Únete a la comunidad</p>
+            </div>
+
+            <div class="card p-10 shadow-xl">
+                <form id="registerForm">
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium mb-2">Nombre de Usuario</label>
+                        <input type="text" id="reg-username"
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-300 dark:border-slate-600 bg-transparent focus:outline-none focus:border-amber-500"
+                            required>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium mb-2">Email</label>
+                        <input type="email" id="reg-email"
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-300 dark:border-slate-600 bg-transparent focus:outline-none focus:border-amber-500"
+                            required>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium mb-2">Contraseña</label>
+                        <input type="password" id="reg-password"
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-300 dark:border-slate-600 bg-transparent focus:outline-none focus:border-amber-500"
+                            required>
+                    </div>
+
+                    <button type="submit" class="btn-primary w-full py-4 text-lg font-semibold">
+                        Crear Cuenta
+                    </button>
+                </form>
+
+                <div class="text-center mt-6">
+                    <a href="login.html" class="text-amber-600 hover:underline">
+                        ¿Ya tienes cuenta? Inicia sesión
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+    <script src="modal.js"></script>
+    <script src="auth.js"></script>
+</body>
+
+</html>

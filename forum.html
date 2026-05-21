@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>re:gaming - Foro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#C8A2FF',
+                        'primary-dark': '#A575EB',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="bubbles.css">
+</head>
+
+<body class="bg-white dark:bg-black min-h-screen">
+
+    <!-- Burbujas -->
+    <div id="bubbles-container"></div>
+
+    <nav class="border-b bg-white/90 dark:bg-black backdrop-blur-md sticky top-0 z-50 transition-colors duration-500">
+        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+
+            <!-- Logo + Nombre -->
+            <div class="flex items-center gap-3">
+                <img id="site-logo" src="0b86edf6-a648-48ab-9091-f2ca581a37ed.jpg" alt="re:gaming Logo"
+                    class="w-10 h-10 object-contain">
+                <a href="index.html" class="logo text-4xl" data-text="Re:gaming">Re:gaming</a>
+            </div>
+
+            <!-- Navegación -->
+            <div class="flex items-center gap-8 text-lg" id="nav-menu"></div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-10 relative z-10">
+        <div class="flex justify-between items-center mb-10">
+            <h1 class="text-5xl font-bold">Foro de la Comunidad</h1>
+            <button onclick="showNewPostModal()" class="btn-primary px-8 py-4 text-lg flex items-center gap-3">
+                <span class="text-2xl">+</span> Nuevo Tema
+            </button>
+        </div>
+
+        <!-- Buscador -->
+        <div class="mb-8">
+            <input type="text" id="search-input" placeholder="Buscar temas o discusiones..."
+                class="w-full px-6 py-4 rounded-3xl border border-gray-300 dark:border-slate-600 bg-transparent focus:outline-none focus:border-amber-500 text-lg"
+                onkeyup="filterPosts()">
+        </div>
+
+        <!-- Lista de Posts -->
+        <div id="posts-container" class="space-y-6">
+            <!-- Posts se generan con JavaScript -->
+        </div>
+    </main>
+
+    <script src="modal.js"></script>
+    <script src="main.js"></script>
+    <script>
+        // Helper function (should ideally be imported from auth.js if loaded globally, but just in case)
+        window.apiFetch = window.apiFetch || async function(endpoint, options = {}) {
+            const token = localStorage.getItem('token');
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(endpoint, {
+                ...options,
+                headers
+            });
+
+            if (response.status === 401) {
+                localStorage.clear();
+                window.location.href = 'login.html';
+                throw new Error('Sesión expirada');
+            }
+
+            return response.json();
+        };
+
+        let posts = [];
+
+        async function fetchDebates() {
+            try {
+                const data = await window.apiFetch('/api/forum/debates');
+                if (data.success && data.debates) {
+                    posts = data.debates.map(d => ({
+                        id: d.id,
+                        title: d.title,
+                        author: d.username,
+                        time: new Date(d.created_at).toLocaleString(),
+                        comments: d.comments_count,
+                        category: "Mensaje"
+                    }));
+                }
+            } catch (err) {
+                console.error("Error fetching debates", err);
+            }
+        }
+
+        function renderPosts(filteredPosts = posts) {
+            const container = document.getElementById('posts-container');
+            container.innerHTML = '';
+
+            if (filteredPosts.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">No hay temas todavía.</p>';
+                return;
+            }
+
+            filteredPosts.forEach(post => {
+                const postHTML = `
+                    <div class="card p-6 hover:shadow-2xl transition-all">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-xs uppercase tracking-widest text-amber-600 dark:text-amber-400">${post.category}</span>
+                                <h3 class="text-2xl font-semibold mt-2 mb-3">${post.title}</h3>
+                                <p class="text-gray-600 dark:text-gray-400">Por <strong>${post.author}</strong> • ${post.time}</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-3xl font-bold text-amber-500">${post.comments}</div>
+                                <div class="text-sm text-gray-500">comentarios</div>
+                            </div>
+                        </div>
+                        <button onclick="openPost(${post.id})" 
+                                class="mt-6 text-amber-600 hover:text-amber-700 dark:hover:text-amber-400 font-medium">
+                            Ver discusión →
+                        </button>
+                    </div>
+                `;
+                container.innerHTML += postHTML;
+            });
+        }
+
+        function filterPosts() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const filtered = posts.filter(post =>
+                post.title.toLowerCase().includes(searchTerm) ||
+                post.author.toLowerCase().includes(searchTerm)
+            );
+            renderPosts(filtered);
+        }
+
+        async function showNewPostModal() {
+            if (!localStorage.getItem('isLoggedIn')) {
+                await showAlert("Debes iniciar sesión para crear un tema.");
+                return;
+            }
+
+            const results = await showForm("Crear Nuevo Tema", [
+                { id: 'title', type: 'text', placeholder: 'Título del tema' },
+                { id: 'content', type: 'textarea', placeholder: '¿De qué quieres hablar?', rows: 5 }
+            ]);
+
+            if (results && results.title && results.content) {
+                try {
+                    const data = await window.apiFetch('/api/forum/debates', {
+                        method: 'POST',
+                        body: JSON.stringify({ title: results.title, description: results.content })
+                    });
+
+                    if (data.success) {
+                        await fetchDebates();
+                        renderPosts();
+                        await showAlert("Tema publicado correctamente!");
+                    } else {
+                        await showAlert(data.message || "Error al publicar");
+                    }
+                } catch (err) {
+                    await showAlert("Error conectando al servidor");
+                }
+            }
+        }
+
+        async function openPost(id) {
+            await showAlert(`Abriendo discusión #${id} (Página de detalle en desarrollo)`);
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchDebates();
+            renderPosts();
+        });
+    </script>
+</body>
+
+</html>

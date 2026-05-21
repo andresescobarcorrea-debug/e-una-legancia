@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>re:gaming - Rankings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#C8A2FF',
+                        'primary-dark': '#A575EB',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="bubbles.css">
+</head>
+
+<body class="bg-white dark:bg-black min-h-screen">
+
+    <div id="bubbles-container"></div>
+
+    <!-- Navegación -->
+    <nav class="border-b bg-white/90 dark:bg-black backdrop-blur-md sticky top-0 z-50 transition-colors duration-500">
+        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+
+            <!-- Logo + Nombre -->
+            <div class="flex items-center gap-3">
+                <img id="site-logo" src="0b86edf6-a648-48ab-9091-f2ca581a37ed.jpg" alt="re:gaming Logo"
+                    class="w-10 h-10 object-contain">
+                <a href="index.html" class="logo text-4xl" data-text="Re:gaming">Re:gaming</a>
+            </div>
+
+            <!-- Navegación -->
+            <div class="flex items-center gap-8 text-lg" id="nav-menu"></div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-12 relative z-10">
+        <div class="text-center mb-12">
+            <h1 class="text-6xl font-bold mb-4">Rankings</h1>
+            <p class="text-2xl text-gray-600 dark:text-gray-400">Lo mejor según la comunidad re:gaming</p>
+            <div id="cycle-timer-container" class="mt-6 hidden items-center justify-center gap-2 bg-primary/10 border border-primary/20 text-primary px-6 py-3 rounded-2xl font-bold text-lg inline-flex shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                <span>Nuevo ranking en: <span id="cycle-timer">--</span></span>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="flex flex-wrap gap-4 justify-center mb-10">
+            <button onclick="filterCategory('all')"
+                class="category-btn active px-6 py-3 rounded-2xl font-medium">Todos</button>
+            <button onclick="filterCategory('juegos')"
+                class="category-btn px-6 py-3 rounded-2xl font-medium">Juegos</button>
+            <button onclick="filterCategory('personajes')"
+                class="category-btn px-6 py-3 rounded-2xl font-medium">Personajes</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="rankings-container">
+            <!-- Se llenan con JavaScript -->
+        </div>
+    </main>
+
+    <script src="modal.js"></script>
+    <script src="main.js"></script>
+    <script>
+        let sqlRankings = [];
+        let timerInterval;
+
+        function startTimer(endsAtStr) {
+            if (timerInterval) clearInterval(timerInterval);
+            const container = document.getElementById('cycle-timer-container');
+            const timerSpan = document.getElementById('cycle-timer');
+            
+            if (!endsAtStr) {
+                container.classList.add('hidden');
+                container.classList.remove('inline-flex');
+                return;
+            }
+            
+            container.classList.remove('hidden');
+            container.classList.add('inline-flex');
+
+            const endsAt = new Date(endsAtStr).getTime();
+
+            function update() {
+                const now = new Date().getTime();
+                const distance = endsAt - now;
+
+                if (distance < 0) {
+                    clearInterval(timerInterval);
+                    timerSpan.innerHTML = "¡Actualizando rankings...";
+                    setTimeout(() => {
+                        fetchRankings(); // Refresh automatically
+                    }, 3000);
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                timerSpan.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+            }
+
+            update();
+            timerInterval = setInterval(update, 1000);
+        }
+
+        async function fetchRankings() {
+            try {
+                const token = localStorage.getItem('token');
+                const headers = {};
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+                const response = await fetch('/api/rankings', { headers });
+                const data = await response.json();
+                if (data.success) {
+                    sqlRankings = data.items;
+                    window.hasVotedInCycle = data.hasVoted || false;
+                    window.votedItemId = data.votedItemId || null;
+                    filterCategory('all'); // Initialize visual rendering
+                    if (data.cycleEndsAt) {
+                        startTimer(data.cycleEndsAt);
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching rankings:", err);
+            }
+        }
+
+        async function voteForItem(id) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                if (window.showAlert) window.showAlert("Debes iniciar sesión para votar.");
+                else alert("Debes iniciar sesión para votar.");
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/rankings/${id}/vote`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (window.showAlert) window.showAlert("¡Voto registrado! +10 puntos añadidos.");
+                    else alert("¡Voto registrado! +10 puntos añadidos.");
+                    await fetchRankings(); // Refresh the list dynamically
+                } else {
+                    if (window.showAlert) window.showAlert(data.error || "Error al votar.");
+                    else alert(data.error || "Error al votar.");
+                }
+            } catch (err) {
+                console.error("Error voting:", err);
+            }
+        }
+
+        function renderRankings(data) {
+            const container = document.getElementById('rankings-container');
+            container.innerHTML = '';
+
+            data.forEach((item, index) => {
+                const isVoted = window.hasVotedInCycle;
+                const isThisVoted = isVoted && (window.votedItemId === item.id);
+                
+                let voteButton = '';
+                if (isVoted) {
+                    if (isThisVoted) {
+                        voteButton = `
+                            <button disabled class="w-full py-3 rounded-xl bg-primary/20 text-primary border border-primary/30 font-bold flex items-center justify-center gap-2 cursor-not-allowed shadow-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                                  <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clip-rule="evenodd" />
+                                </svg>
+                                ¡Votaste por este! (+10 pts)
+                            </button>
+                        `;
+                    } else {
+                        voteButton = `
+                            <button disabled class="w-full py-3 rounded-xl bg-gray-100 dark:bg-slate-900 text-gray-400 dark:text-gray-600 font-bold flex items-center justify-center gap-2 cursor-not-allowed shadow-none">
+                                Ya votaste en este ciclo
+                            </button>
+                        `;
+                    }
+                } else {
+                    voteButton = `
+                        <button onclick="voteForItem(${item.id})" class="w-full py-3 rounded-xl border border-primary/30 text-primary hover:bg-primary hover:text-black font-bold transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
+                            </svg>
+                            Votar (+10 pts)
+                        </button>
+                    `;
+                }
+
+                const card = `
+                    <div class="card ranking-card overflow-hidden group transition-all hover:shadow-[0_0_25px_rgba(200,162,255,0.15)] hover:-translate-y-2">
+                        <div class="relative">
+                            <img src="${item.image}" 
+                                 class="w-full h-52 object-cover transition-transform duration-500 group-hover:scale-110">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-50 group-hover:opacity-70 transition-opacity"></div>
+                            <div class="absolute top-4 left-4 bg-black/70 backdrop-blur-md text-white text-3xl font-bold w-12 h-12 flex items-center justify-center rounded-2xl border border-white/10 shadow-lg">
+                                ${index + 1}
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-2xl font-bold mb-3 text-gray-900 dark:text-white">${item.title}</h3>
+                            <div class="flex justify-between items-center mb-6">
+                                <div>
+                                    <span class="text-primary font-bold text-2xl">${item.points}</span>
+                                    <span class="text-gray-500 text-sm font-semibold uppercase tracking-wide"> pts</span>
+                                </div>
+                                <div class="text-xs font-semibold text-gray-500 uppercase tracking-widest bg-gray-100 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/5">
+                                    ${item.votes_count || 0} votos
+                                </div>
+                            </div>
+                            ${voteButton}
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        }
+
+        function filterCategory(category) {
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active', 'bg-amber-600', 'text-white'));
+            if (event && event.target && event.target.tagName === 'BUTTON') {
+                event.target.classList.add('active', 'bg-amber-600', 'text-white');
+            } else {
+                // Si se llama manualmente, reactivar visualmente el primero
+                const firstBtn = document.querySelector('.category-btn');
+                if (firstBtn && category === 'all') firstBtn.classList.add('active', 'bg-amber-600', 'text-white');
+            }
+
+            let dataToRender = [];
+            if (category === 'all') {
+                dataToRender = [...sqlRankings].sort((a, b) => b.points - a.points);
+            } else {
+                dataToRender = sqlRankings.filter(r => r.category === category).sort((a, b) => b.points - a.points);
+            }
+            renderRankings(dataToRender);
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchRankings();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>re:gaming - Perfil</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#C8A2FF',
+                        'primary-dark': '#A575EB',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="bubbles.css">
+</head>
+
+<body class="bg-white dark:bg-black min-h-screen">
+
+    <div id="bubbles-container"></div>
+
+    <nav class="border-b bg-white/90 dark:bg-black backdrop-blur-md sticky top-0 z-50 transition-colors duration-500">
+        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+
+            <!-- Logo + Nombre -->
+            <div class="flex items-center gap-3">
+                <img id="site-logo" src="0b86edf6-a648-48ab-9091-f2ca581a37ed.jpg" alt="re:gaming Logo"
+                    class="w-10 h-10 object-contain">
+                <a href="index.html" class="logo text-4xl" data-text="Re:gaming">Re:gaming</a>
+            </div>
+
+            <!-- Navegación -->
+            <div class="flex items-center gap-8 text-lg" id="nav-menu"></div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-6 py-12 relative z-10">
+        <!-- Banner del Perfil -->
+        <div id="profile-banner-container" class="relative w-full h-64 rounded-3xl overflow-hidden mb-10 shadow-2xl border border-white/10 flex items-end">
+            <!-- Capa de imagen de fondo -->
+            <div id="profile-banner-bg" class="absolute inset-0 bg-cover bg-center transition-all duration-700 bg-slate-900" style="background-image: url('0b86edf6-a648-48ab-9091-f2ca581a37ed.jpg');"></div>
+            <!-- Overlay oscuro ultra-premium -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-10"></div>
+            
+            <!-- Contenido del banner -->
+            <div class="relative z-20 p-8 w-full flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <h1 id="profile-title" class="text-5xl font-bold mb-2 text-white drop-shadow-md">Mi Perfil</h1>
+                    <p id="profile-subtitle" class="text-gray-200 drop-shadow-sm font-medium">Gestiona tu cuenta</p>
+                </div>
+                <div id="profile-banner-badge" class="flex items-center gap-2 bg-primary/20 backdrop-blur-md border border-primary/30 px-5 py-2.5 rounded-2xl shadow-lg">
+                    <span class="text-amber-400 text-lg">★</span>
+                    <span id="profile-banner-score" class="text-white font-bold">Score: -- pts</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="profile-grid" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <!-- Foto de Perfil -->
+            <div class="lg:col-span-1">
+                <div class="auth-card p-8 text-center">
+                    <div class="relative mx-auto w-40 h-40 mb-6">
+                        <img id="profile-image" src="https://via.placeholder.com/150/d97706/ffffff?text=U"
+                            alt="Foto de perfil"
+                            class="w-40 h-40 object-cover rounded-3xl shadow-xl border-4 border-amber-200 dark:border-amber-800">
+
+                        <label for="profile-upload" id="profile-upload-label"
+                            class="absolute bottom-2 right-2 bg-amber-600 hover:bg-amber-700 text-white p-3 rounded-2xl cursor-pointer shadow-lg transition">
+
+                        </label>
+                        <input type="file" id="profile-upload" accept="image/*" class="hidden">
+                    </div>
+
+                    <h2 id="profile-username" class="text-3xl font-bold mb-1">Usuario</h2>
+                    <p id="profile-email" class="text-gray-500 dark:text-gray-400 break-all max-w-full px-2">usuario@email.com</p>
+                </div>
+            </div>
+
+            <!-- Configuraciones -->
+            <div id="edit-profile-section" class="lg:col-span-2 space-y-8">
+                <!-- Cambiar Nombre -->
+                <div class="auth-card p-8">
+                    <h3 class="text-2xl font-semibold mb-6">Cambiar Nombre de Usuario</h3>
+                    <input type="text" id="current-username" class="auth-input bg-gray-100 dark:bg-slate-800 mb-4"
+                        readonly>
+                    <input type="text" id="new-username" class="auth-input mb-6" placeholder="Nuevo nombre de usuario">
+                    <button onclick="changeUsername()" class="btn-primary w-full py-4">Cambiar Nombre</button>
+                </div>
+
+                <!-- Personalizar Fondo del Perfil -->
+                <div class="auth-card p-8">
+                    <h3 class="text-2xl font-semibold mb-2">Personalizar Fondo del Perfil</h3>
+                    <p class="text-gray-500 dark:text-gray-400 mb-6 text-sm">Sube un banner personalizado para la parte superior de tu perfil.</p>
+                    
+                    <!-- Previsualización del banner -->
+                    <div class="relative w-full h-44 rounded-2xl overflow-hidden mb-6 bg-gray-100 dark:bg-slate-900 border border-white/10 flex items-center justify-center">
+                        <div id="banner-preview-overlay" class="absolute inset-0 bg-black/40 z-10 transition-opacity"></div>
+                        <img id="banner-preview-img" src="" class="absolute inset-0 w-full h-full object-cover hidden" alt="Previsualización de fondo">
+                        <span id="banner-preview-placeholder" class="text-gray-400 dark:text-gray-500 z-20 font-medium">Sin imagen de fondo seleccionada</span>
+                    </div>
+
+                    <!-- Input de archivo personalizado -->
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <label for="background-upload" class="btn-primary flex-1 py-4 text-center cursor-pointer flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                            </svg>
+                            Seleccionar Imagen
+                        </label>
+                        <input type="file" id="background-upload" accept="image/*" class="hidden">
+                        
+                        <button id="save-background-btn" onclick="saveBackground()" disabled class="flex-1 py-4 rounded-full font-semibold transition bg-gray-200 dark:bg-slate-800 text-gray-400 dark:text-gray-600 cursor-not-allowed border border-white/5">
+                            Guardar Fondo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mis Juegos (Oculta por defecto) -->
+        <section id="my-list-section" class="mt-16 hidden transition-all duration-500 opacity-0 transform -translate-y-4">
+            <div class="flex justify-between items-center mb-8">
+                <h2 id="list-section-title" class="text-3xl font-bold flex items-center gap-3" style="color: var(--primary);">
+                    Mis Juegos
+                </h2>
+            </div>
+            <div id="my-list-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <!-- Se inyectan los juegos de la lista desde main.js -->
+            </div>
+        </section>
+    </main>
+
+    <script src="modal.js"></script>
+    <script src="main.js"></script>
+    <script>
+        // Declarar inmediatamente la bandera si es perfil público antes de que main.js ejecute syncMyList()
+        (() => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const profileUserId = urlParams.get('id');
+            if (profileUserId) {
+                window.isPublicProfileView = true;
+            }
+        })();
+
+        // Helper function (should ideally be imported from auth.js if loaded globally, but just in case)
+        window.apiFetch = window.apiFetch || async function(endpoint, options = {}) {
+            const token = localStorage.getItem('token');
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(endpoint, {
+                ...options,
+                headers
+            });
+
+            if (response.status === 401) {
+                localStorage.clear();
+                window.location.href = 'login.html';
+                throw new Error('Sesión expirada');
+            }
+
+            return response.json();
+        };
+
+        // Verificar login
+        (async () => {
+            if (!localStorage.getItem('isLoggedIn') || !localStorage.getItem('token')) {
+                await showAlert("Debes iniciar sesión para acceder al perfil.");
+                window.location.href = "login.html";
+            }
+        })();
+
+        // Cargar datos del usuario reales desde la BD
+        async function loadUserData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const profileUserId = urlParams.get('id');
+
+            if (profileUserId) {
+                // MODO PERFIL PÚBLICO
+                try {
+                    const data = await window.apiFetch(`/api/users/${profileUserId}/profile`);
+                    if (data.success && data.profile) {
+                        const profile = data.profile;
+                        
+                        // Actualizar textos e imágenes
+                        document.getElementById('profile-title').textContent = `Perfil de Gamer`;
+                        document.getElementById('profile-subtitle').textContent = `Conoce a ${profile.username}`;
+                        document.getElementById('profile-username').textContent = profile.username;
+                        
+                        // Actualizar Banner
+                        document.getElementById('profile-banner-score').textContent = `Score: ${profile.score} pts`;
+                        if (profile.profile_background) {
+                            document.getElementById('profile-banner-bg').style.backgroundImage = `url('${profile.profile_background}')`;
+                        } else {
+                            document.getElementById('profile-banner-bg').style.backgroundImage = `url('0b86edf6-a648-48ab-9091-f2ca581a37ed.jpg')`;
+                        }
+                        
+                        // Ocultar e-mail y mostrar Score del jugador
+                        const scoreSpan = `<span class="text-primary font-bold text-lg">Score: ${profile.score} pts</span>`;
+                        document.getElementById('profile-email').innerHTML = scoreSpan;
+                        
+                        const avatarUrl = profile.profile_image || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + profile.username;
+                        document.getElementById('profile-image').src = avatarUrl;
+                        
+                        // Ocultar controles de edición
+                        document.getElementById('edit-profile-section').classList.add('hidden');
+                        document.getElementById('profile-upload-label').classList.add('hidden');
+                        
+                        // Centrar la tarjeta del avatar y darle un aspecto premium
+                        const gridElem = document.getElementById('profile-grid');
+                        gridElem.classList.remove('lg:grid-cols-3');
+                        gridElem.classList.add('lg:grid-cols-1', 'max-w-md', 'mx-auto');
+                        
+                        // Renderizar la biblioteca de juegos reales de este usuario
+                        const section = document.getElementById('my-list-section');
+                        const container = document.getElementById('my-list-container');
+                        document.getElementById('list-section-title').innerHTML = `Juegos de ${profile.username}`;
+                        
+                        if (data.games && data.games.length > 0) {
+                            section.classList.remove('hidden');
+                            void section.offsetWidth;
+                            section.classList.remove('opacity-0', '-translate-y-4');
+                            section.classList.add('opacity-100', 'translate-y-0');
+                            
+                            container.innerHTML = data.games.map(game => {
+                                const releaseDate = game.released 
+                                    ? new Date(game.released).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })
+                                    : 'N/A';
+                                return `
+                                    <div onclick="window.location.href='game-details.html?id=${game.game_id}'" class="group cursor-pointer relative flex flex-col bg-[#0f0f0f] text-white rounded-2xl overflow-hidden shadow-lg border border-white/5 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/30">
+                                        <div class="relative w-full aspect-[3/4] overflow-hidden bg-gray-900">
+                                            <img src="${game.game_image}" alt="${game.game_name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                            <div class="absolute top-4 right-4 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 flex items-center gap-1.5 shadow-lg">
+                                                <span class="text-amber-400 text-sm">★</span>
+                                                <span class="text-white font-bold text-sm">${game.rating}</span>
+                                            </div>
+                                        </div>
+                                        <div class="p-5 flex flex-col flex-grow">
+                                            <h2 class="text-xl font-bold mb-2 line-clamp-1 text-white" title="${game.game_name}">${game.game_name}</h2>
+                                            <div class="mt-auto flex items-center justify-between">
+                                                <div class="flex flex-col">
+                                                    <span class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Lanzamiento</span>
+                                                    <span class="text-sm text-gray-300">${releaseDate}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('');
+                        } else {
+                            // Mostrar mensaje de biblioteca vacía
+                            section.classList.remove('hidden');
+                            void section.offsetWidth;
+                            section.classList.remove('opacity-0', '-translate-y-4');
+                            section.classList.add('opacity-100', 'translate-y-0');
+                            container.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500">Este gamer aún no ha añadido ningún juego a su biblioteca.</div>`;
+                        }
+                    } else {
+                        await showAlert(data.message || "Error al cargar el perfil del usuario");
+                    }
+                } catch (err) {
+                    console.error("Error loading public profile", err);
+                    await showAlert("No se pudo cargar el perfil.");
+                }
+            } else {
+                // MODO MI PERFIL (COMPORTAMIENTO ORIGINAL)
+                try {
+                    const data = await window.apiFetch('/api/users/profile');
+                    if (data.success && data.profile) {
+                        const profile = data.profile;
+                        document.getElementById('profile-username').textContent = profile.username;
+                        document.getElementById('current-username').value = profile.username;
+                        document.getElementById('profile-email').textContent = profile.email;
+                        
+                        // Actualizar Banner
+                        document.getElementById('profile-banner-score').textContent = `Score: ${profile.score} pts`;
+                        if (profile.profile_background) {
+                            document.getElementById('profile-banner-bg').style.backgroundImage = `url('${profile.profile_background}')`;
+                            
+                            // Mostrar en previsualización de configuración también
+                            const previewImg = document.getElementById('banner-preview-img');
+                            previewImg.src = profile.profile_background;
+                            previewImg.classList.remove('hidden');
+                            document.getElementById('banner-preview-placeholder').classList.add('hidden');
+                        } else {
+                            document.getElementById('profile-banner-bg').style.backgroundImage = `url('0b86edf6-a648-48ab-9091-f2ca581a37ed.jpg')`;
+                        }
+                        
+                        const emailElem = document.getElementById('profile-email');
+                        emailElem.innerHTML = `${profile.email}<br><span class="text-amber-600 font-bold">Score: ${profile.score} pts</span>`;
+                        
+                        if (profile.profile_image) {
+                            localStorage.setItem('profilePic', profile.profile_image);
+                            document.getElementById('profile-image').src = profile.profile_image;
+                        } else {
+                            const existingPic = localStorage.getItem('profilePic');
+                            if (existingPic && existingPic.startsWith('http')) {
+                                document.getElementById('profile-image').src = existingPic;
+                            }
+                        }
+
+                        // Sincronizar y renderizar favoritos del usuario autenticado (propio)
+                        const token = localStorage.getItem('token');
+                        const response = await fetch('/api/user-games', {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        const gamesData = await response.json();
+                        if (gamesData.success && gamesData.games) {
+                            const mappedList = gamesData.games.map(g => ({
+                                id: g.game_id.toString(),
+                                name: g.game_name,
+                                image: g.game_image,
+                                rating: g.rating,
+                                released: g.released
+                            }));
+                            localStorage.setItem('myGameList', JSON.stringify(mappedList));
+                            
+                            // Habilitar temporalmente para renderizar el perfil propio
+                            window.isPublicProfileView = false;
+                            window.renderMyList();
+                        }
+                    }
+                } catch (err) {
+                    console.error("Error loading profile", err);
+                }
+            }
+        }
+
+        // Subir y guardar foto de perfil (local por ahora)
+        document.getElementById('profile-upload').addEventListener('change', async function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                await showAlert("Por favor selecciona una imagen válida");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/users/profile-image', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('profile-image').src = data.imageUrl;
+                    localStorage.setItem('profilePic', data.imageUrl);
+                    await showAlert("Foto de perfil actualizada correctamente");
+                } else {
+                    await showAlert(data.message || "Error al subir la imagen");
+                }
+            } catch (err) {
+                console.error(err);
+                await showAlert("Error conectando al servidor");
+            }
+        });
+
+        // Manejar cambio en input de fondo para previsualización
+        let selectedBackgroundFile = null;
+        document.getElementById('background-upload').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                showAlert("Por favor selecciona una imagen válida");
+                return;
+            }
+
+            selectedBackgroundFile = file;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const previewImg = document.getElementById('banner-preview-img');
+                previewImg.src = event.target.result;
+                previewImg.classList.remove('hidden');
+                document.getElementById('banner-preview-placeholder').classList.add('hidden');
+                
+                // Habilitar botón de guardar con estilo premium
+                const saveBtn = document.getElementById('save-background-btn');
+                saveBtn.removeAttribute('disabled');
+                saveBtn.className = "flex-1 py-4 rounded-full font-semibold transition bg-primary text-black hover:bg-primary-dark cursor-pointer border border-primary/10 shadow-lg text-center flex items-center justify-center";
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Guardar fondo en servidor
+        async function saveBackground() {
+            if (!selectedBackgroundFile) return;
+
+            const formData = new FormData();
+            formData.append('background', selectedBackgroundFile);
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/users/profile-background', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    // Actualizar banner inmediatamente
+                    document.getElementById('profile-banner-bg').style.backgroundImage = `url('${data.backgroundUrl}')`;
+                    await showAlert("Imagen de fondo del perfil actualizada exitosamente.");
+                    
+                    // Deshabilitar botón de guardar después de éxito
+                    const saveBtn = document.getElementById('save-background-btn');
+                    saveBtn.setAttribute('disabled', 'true');
+                    saveBtn.className = "flex-1 py-4 rounded-full font-semibold transition bg-gray-200 dark:bg-slate-800 text-gray-400 dark:text-gray-600 cursor-not-allowed border border-white/5";
+                    selectedBackgroundFile = null;
+                } else {
+                    await showAlert(data.message || "Error al subir el fondo del perfil");
+                }
+            } catch (err) {
+                console.error(err);
+                await showAlert("Error conectando al servidor");
+            }
+        }
+
+        async function changeUsername() {
+            await showAlert("Funcionalidad en desarrollo (requiere endpoint en API)");
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserData();
+        });
+    </script>
+</body>
+
+</html>

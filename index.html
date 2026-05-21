@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>re:gaming</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#C8A2FF',
+                        'primary-dark': '#A575EB',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="bubbles.css">
+</head>
+
+<body class="bg-white dark:bg-black min-h-screen">
+
+
+
+    <!-- Burbujas -->
+    <div id="bubbles-container"></div>
+
+    <!-- Navegación -->
+    <nav class="border-b bg-white/90 dark:bg-black backdrop-blur-md sticky top-0 z-50 transition-colors duration-500">
+        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+
+            <!-- Logo + Nombre -->
+            <div class="flex items-center gap-3">
+                <img id="site-logo" src="0b86edf6-a648-48ab-9091-f2ca581a37ed.jpg" alt="re:gaming Logo"
+                    class="w-10 h-10 object-contain">
+                <a href="index.html" class="logo text-4xl" data-text="Re:gaming">Re:gaming</a>
+            </div>
+
+            <!-- Navegación -->
+            <div class="flex items-center gap-8 text-lg" id="nav-menu"></div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 relative z-10">
+        <!-- Hero Modificado -->
+        <div class="pt-28 pb-24 text-center">
+            <p class="text-2xl md:text-3xl text-gray-600 dark:text-gray-400 font-medium mb-3">
+                Bienvenido a
+            </p>
+            <h1 class="logo text-7xl md:text-8xl lg:text-[6.5rem] font-bold tracking-tighter" data-text="Re:gaming">
+                Re:gaming
+            </h1>
+            <p class="text-2xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mt-6">
+                Tu comunidad de videojuegos • Rankings • Chats Privados • Comparaciones
+            </p>
+        </div>
+
+        <!-- Juegos Populares (RAWG) -->
+        <section class="mb-20">
+<div class="flex justify-between items-center mb-8">
+    <h2 class="text-4xl font-bold flex items-center gap-3">Juegos Populares</h2>
+    <div class="flex flex-col items-end">
+        <!-- Dropdown de Categorías -->
+        <select id="game-explorer-select" class="bg-gray-100 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white text-sm rounded-xl p-2 focus:ring-primary focus:border-primary">
+            <option value="popular">Juegos Populares</option>
+            <option value="new">Nuevos Lanzamientos</option>
+            <option value="top">Mejor Valorados</option>
+            <option value="trending">Tendencias</option>
+            <option value="upcoming">Próximamente</option>
+            <option value="discount">Juegos en Descuento</option>
+        </select>
+        <!-- Botón Ver todos -->
+        <a href="games.html" class="mt-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition">
+            Ver todos →
+        </a>
+    </div>
+</div>
+
+            <div id="games-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                <!-- Se inyectan los juegos populares desde main.js -->
+            </div>
+        </section>
+
+        <!-- Personaje Destacado del Día -->
+        <section class="mb-20">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-4xl font-bold flex items-center gap-3">Personaje Destacado</h2>
+            </div>
+            <div class="max-w-4xl mx-auto">
+                <div class="overflow-hidden flex flex-col md:flex-row items-stretch shadow-xl bg-white dark:bg-[#080808] border border-gray-200 dark:border-white/10 rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/5 hover:border-primary/30 cursor-pointer relative" id="featured-card">
+                    <!-- Imagen -->
+                    <div class="w-full md:w-[28%] md:min-w-[220px] h-[260px] md:h-auto bg-gray-100 dark:bg-zinc-950 relative overflow-hidden flex-shrink-0">
+                        <img id="featured-img" src="" class="w-full h-full object-cover object-top transition-transform duration-700 hover:scale-105" alt="Personaje Destacado">
+                        <div id="featured-rating-badge" class="absolute top-4 left-4 bg-black/85 backdrop-blur-md px-3 py-1 rounded-xl border border-white/10 text-[10px] font-extrabold text-primary tracking-wider uppercase z-10">
+                            <!-- Inyectado por JS -->
+                        </div>
+                    </div>
+                    <!-- Contenido -->
+                    <div class="w-full md:w-[72%] p-6 md:p-8 lg:p-10 flex flex-col justify-center select-none">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-primary mb-1 block">Personaje Destacado</span>
+                        <h3 id="featured-title" class="text-2xl md:text-3xl font-black mb-3 tracking-tight leading-none text-gray-900 dark:text-white">Cargando Destacado...</h3>
+                        <p id="featured-desc" class="text-sm text-gray-600 dark:text-zinc-400 mb-5 leading-relaxed">
+                            Cargando descripción...
+                        </p>
+                        <div class="space-y-4">
+                            <div class="h-[1px] bg-gray-100 dark:bg-zinc-900"></div>
+                            <div id="featured-meta" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <!-- Ficha técnica inyectada por JS libre de emojis -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Próximos Lanzamientos -->
+        <section class="mb-20">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-4xl font-bold flex items-center gap-3">Próximos Lanzamientos</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="upcoming-releases">
+                <!-- Se inyecta por JS simulando RAWG API -->
+            </div>
+        </section>
+    </main>
+
+    <script src="modal.js"></script>
+    <script src="main.js"></script>
+    <script>
+        // --- Consumo de Datos (Backend Express) ---
+
+        function loadFeaturedCharacter() {
+            try {
+                const characters = [
+                    {
+                        name: "Geralt de Rivia",
+                        origin: "The Witcher 3: Wild Hunt",
+                        role: "Brujo / Cazador de Monstruos",
+                        ability: "Señales Mágicas y Esgrima",
+                        affiliation: "Escuela del Lobo",
+                        rating: "4.95",
+                        gameId: "3328",
+                        image: "https://cdn.cloudflare.steamstatic.com/steam/apps/292030/library_600x900.jpg",
+                        description: "Geralt de Rivia es un cazador de monstruos mutado conocido como el Lobo Blanco. Con sus espadas de acero y plata, recorre el Continente desentrañando intrigas políticas y enfrentándose a amenazas sobrenaturales."
+                    },
+                    {
+                        name: "Kratos",
+                        origin: "God of War",
+                        role: "Dios de la Guerra / Semidiós",
+                        ability: "Espadas del Caos y Hacha Leviatán",
+                        affiliation: "Panteón Griego / Tierras Nórdicas",
+                        rating: "4.95",
+                        gameId: "58175",
+                        image: "https://cdn.cloudflare.steamstatic.com/steam/apps/1593500/library_600x900.jpg",
+                        description: "Kratos, el Fantasma de Esparta, es un semidiós griego que, tras consumar su venganza contra los dioses del Olimpo, busca una vida pacífica en las tierras nórdicas. Armado con sus Espadas del Caos y el Hacha Leviatán, lucha por proteger a su hijo Atreus."
+                    },
+                    {
+                        name: "Leon S. Kennedy",
+                        origin: "Resident Evil 4",
+                        role: "Agente Federal / Superviviente",
+                        ability: "Combate Táctico y Uso de Armas",
+                        affiliation: "Gobierno de los EE.UU.",
+                        rating: "4.90",
+                        gameId: "846342",
+                        image: "https://cdn.cloudflare.steamstatic.com/steam/apps/2050650/library_600x900.jpg",
+                        description: "Leon S. Kennedy es un agente federal estadounidense y superviviente del desastre de Raccoon City. Es enviado a una misión de rescate en un aislado pueblo europeo donde se enfrenta al brote del parásito de Las Plagas."
+                    },
+                    {
+                        name: "Ellie",
+                        origin: "The Last of Us Part I",
+                        role: "Superviviente / Inmune",
+                        ability: "Sigilo, Combate y Supervivencia",
+                        affiliation: "Luciérnagas (Anteriormente)",
+                        rating: "4.90",
+                        gameId: "3990",
+                        image: "https://cdn.cloudflare.steamstatic.com/steam/apps/1888930/library_600x900.jpg",
+                        description: "Ellie es una joven superviviente en un mundo postapocalíptico devastado por la infección del hongo Cordyceps. Al ser inmune al virus, se convierte en la clave para una posible cura, lo que la lleva a cruzar el país en una travesía brutal."
+                    },
+                    {
+                        name: "Jefe Maestro",
+                        origin: "Halo: The Master Chief Collection",
+                        role: "Spartan-II / Supersoldado",
+                        ability: "Combate Táctico y Armadura MJOLNIR",
+                        affiliation: "UNSC",
+                        rating: "4.85",
+                        gameId: "29088",
+                        image: "https://cdn.cloudflare.steamstatic.com/steam/apps/976730/library_600x900.jpg",
+                        description: "John-117, el Jefe Maestro, es un supersoldado Spartan-II que actúa como el principal defensor de la humanidad contra las amenazas alienígenas del Covenant y los Forerunner. Acompañado por la IA Cortana, es un símbolo de resistencia galáctica."
+                    },
+                    {
+                        name: "Lara Croft",
+                        origin: "Shadow of the Tomb Raider",
+                        role: "Arqueóloga / Aventurera",
+                        ability: "Exploración, Arquería y Combate",
+                        affiliation: "Familia Croft",
+                        rating: "4.80",
+                        gameId: "58760",
+                        image: "https://cdn.cloudflare.steamstatic.com/steam/apps/750920/library_600x900.jpg",
+                        description: "Lara Croft es una arqueóloga británica de renombre mundial altamente capacitada. En su búsqueda de reliquias antiguas e historias perdidas, se enfrenta a peligrosos mercenarios, desentraña misterios milenarios y sobrevive en los entornos más extremos."
+                    },
+                    {
+                        name: "Arthur Morgan",
+                        origin: "Red Dead Redemption 2",
+                        role: "Forajido / Pistolero",
+                        ability: "Dead Eye (Precisión) y Tiroteo",
+                        affiliation: "Banda de Van der Linde",
+                        rating: "4.95",
+                        gameId: "5679",
+                        image: "https://cdn.cloudflare.steamstatic.com/steam/apps/1174180/library_600x900.jpg",
+                        description: "Arthur Morgan es un forajido y el principal ejecutor de la banda de Van der Linde a finales del siglo XIX. Con el declive del Salvaje Oeste, Arthur se debate entre la lealtad a la banda que lo crió y la búsqueda de su propia redención."
+                    }
+                ];
+
+                // Cambiar automáticamente cada 7 días
+                const weekNum = Math.floor(Date.now() / (1000 * 60 * 60 * 24 * 7));
+                const index = weekNum % characters.length;
+                const featured = characters[index];
+
+                document.getElementById('featured-img').src = featured.image;
+                document.getElementById('featured-title').textContent = featured.name;
+                document.getElementById('featured-rating-badge').textContent = `${featured.rating} / 5`;
+                document.getElementById('featured-desc').textContent = featured.description;
+
+                // Clic redirige a detalles del juego
+                document.getElementById('featured-card').onclick = () => {
+                    window.location.href = `game-details.html?id=${featured.gameId}`;
+                };
+
+                document.getElementById('featured-meta').innerHTML = `
+                    <div class="border-l-2 border-primary/30 pl-3">
+                        <span class="text-[10px] uppercase font-bold text-gray-400 dark:text-zinc-500 block">Origen</span>
+                        <span class="text-gray-900 dark:text-zinc-200 font-medium text-xs">${featured.origin}</span>
+                    </div>
+                    <div class="border-l-2 border-primary/30 pl-3">
+                        <span class="text-[10px] uppercase font-bold text-gray-400 dark:text-zinc-500 block">Rol</span>
+                        <span class="text-gray-900 dark:text-zinc-200 font-medium text-xs">${featured.role}</span>
+                    </div>
+                    <div class="border-l-2 border-primary/30 pl-3">
+                        <span class="text-[10px] uppercase font-bold text-gray-400 dark:text-zinc-500 block">Habilidad</span>
+                        <span class="text-gray-900 dark:text-zinc-200 font-medium text-xs">${featured.ability}</span>
+                    </div>
+                    <div class="border-l-2 border-primary/30 pl-3">
+                        <span class="text-[10px] uppercase font-bold text-gray-400 dark:text-zinc-500 block">Afiliación</span>
+                        <span class="text-gray-900 dark:text-zinc-200 font-medium text-xs">${featured.affiliation}</span>
+                    </div>
+                `;
+            } catch (error) {
+                console.error("Error cargando Personaje Destacado:", error);
+            }
+        }
+
+        async function fetchReleases() {
+            try {
+                const response = await fetch('/api/games/upcoming');
+                const data = await response.json();
+                if(data.success && data.games) {
+                    renderReleases(data.games);
+                }
+            } catch (error) {
+                console.error("Error cargando Lanzamientos:", error);
+                document.getElementById('upcoming-releases').innerHTML = '<p class="text-red-500">Error cargando próximos lanzamientos.</p>';
+            }
+        }
+
+        function calculateDaysLeft(dateString) {
+            const releaseDate = new Date(dateString);
+            const today = new Date();
+            const diffTime = Math.abs(releaseDate - today);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
+        }
+
+        function renderReleases(releases) {
+            const container = document.getElementById('upcoming-releases');
+            container.innerHTML = releases.map(game => {
+                const title = game.name || game.title || 'Juego';
+                const platform = game.platforms 
+                    ? game.platforms.slice(0, 3).map(p => p.platform.name).join(', ') 
+                    : (game.platform || 'Varias');
+                const date = game.released || game.date || new Date().toISOString();
+                return `
+                    <div class="card p-6 border border-gray-100 dark:border-slate-800">
+                        <h3 class="text-lg font-bold mb-2">${title}</h3>
+                        <p class="text-gray-500 text-sm mb-4">${platform}</p>
+                        <div class="bg-gray-50 dark:bg-slate-800 p-3 rounded-xl text-center">
+                            <span class="block text-2xl font-bold" style="color: var(--primary)">${calculateDaysLeft(date)}</span>
+                            <span class="text-xs text-gray-500 uppercase tracking-wider">Días restantes</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFeaturedCharacter();
+            fetchReleases();
+        });
+    </script>
+</body>
+
+</html>
